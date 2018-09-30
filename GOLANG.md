@@ -496,7 +496,7 @@ Uno slice ha 3 componenti:
 - **lunghezza**: è il numero degli elementimenti dello slice. Non può eccedere la capacità
 - **capacità**: è il numero di elementi compresi tra l'inizio dello slice e la fine dell'array sottostante
 
-![slice](/Users/samuele/Learning/GOLANG/slice.png)
+![slice](https://github.com/samuelebisello/GOLANG/blob/master/slice.png)
 
 Più slice possono condividere lo stesso array sottostante e possono riferirsi a parti sovrapposte di quel array (figura sopra e codice sotto).
 
