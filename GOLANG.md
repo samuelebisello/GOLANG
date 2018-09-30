@@ -5,46 +5,6 @@
 In Go un nome viene esportato (exported, pubblico), ossia è visibile al di fuori del package se comincia con la lettera maiuscola.
 Quando si importa un package, ci si può solo riferire a i nomi "exported" (pubblici). Qualsiasi nome "unexported" (privato) non è accessibile al di fuori del package.
 
-### Funzioni
-
-Una funzione può avere 0 o più argomenti.
-
-```go
-func f() int {...}
-func f(i int) int {...}
-func f(i int, s string) {...}
-```
-
-Quando 2 o piu parametri di una funzione condividono un tipo, è possibile omettere il tipo ed inserirlo solo in fondo alla dichiarazione.
-
-```go
-func f(i, y int) int {...}
-```
-
-Una funzione può ritornare qualsiasi numero di risultati (1,2,...n valori), indicati con il tipo.
-
-Se il # dei valori ritornati da una funzione è > 1, bisogna racchiudere il tipo del valore ritornato tra parentesi tonde.
-
-```go
-func f(x, y string) (string, string) {
-    return y, x
-}
-```
-
-Si può dare un nome ai valori di ritorno. Se si decide di dare un nome alle variabli da restiture dalla funzione la sintassi è la seguente:
-
-```go
-func f(i int) (x, y int) {
-    x = 5 + 4
-    y = x * 4
-    return
-}
-```
-
-I nomi dati alle variabili di ritorno dovrebbero essere significativi per documentare il tipo di ritorno
-
-Lo statement `return` senza gli argomenti viene detto "naked" e ritorna i valori di ritorno a cui è stato dato un nome.
-
 ### Variabili
 
 La dichiarazione `var` crea una variabile di un determinato tipo, le assegna un nome ed un valore iniziale.
@@ -98,6 +58,28 @@ func main() {
 }
 ```
 
+### Tempo di vita di una variabile
+
+Il tempo di vita di una variablie è l'intervallo di tempo durante il quale esiste mentre il programma viene eseguito. 
+
+Il tempo di vita di una variabile a livello di package è **l'intera esecuzione del programma**. 
+
+Invece una variabile locale ha un tempo di vita dinamico: una nuova istanza è creata ogni qual volta lo statement di dichiarazione viene eseguito, e **la variabile vive fino a che non diventa irragiungibile**. Uno degli effeti di questa caratteristica in Go sono le *closures*.
+
+### Dichiarazione di Tipo
+
+Il tipo di una variabile (o espressione) definisce le caratteristiche dei valori che può assumere, come size, operazioni ecc.
+
+Una dichiarazione di tipo definisce un nuovo **tipo** con nome (**named type**), che ha lo stesso tipo sottostante di un tipo esistente. 
+
+Il nuovo tipo fornisce un modo per separare usi differenti del tipo sottostante in modo che non possano essere mischiati se non intenzionalmente.
+
+```go
+type name underlying-type
+```
+
+Questa dichiarazione molto spesso avviene a livello di package.
+
 ### Type Inference
 
 Quando si dichiara una variablie senza specificarne esplicitamente il tipo (sia usando la sintassi `:=` che `var` ), il tipo della variabile è dedotto (inferred) dal valore dell'espressione. 
@@ -135,7 +117,7 @@ Il valore zero di un tipo aggregato come  *array e struct* ha il valore zero di 
 
 > **NB**: Il meccanismo "zero values" garantisce che una variabile contenga sempre un valore ben definito del suo tipo.
 
-### Basic Types
+### Tipi base
 
 I tipi di base del linguaggio GO sono
 
@@ -154,7 +136,7 @@ rune // alias per int32
 
 float32 float64
 
-complex64 complex128bool
+complex64 complex128
 ```
 
 I tipi `int` ,`uint`, e `uintptr` occupano di solito 32 bits su sitemi a 32-bit e 64 in sistemi a 64-bit.
@@ -172,11 +154,18 @@ u := uint(f)
 ```
 
 A differenza del C, in Go l'assegnamento tra elementi di tipi differenti rechiede una **conversione esplicita**. 
+**AGGIUNGERE**
+
+### Stringhe
+
+**TO DO**
 
 ### Constanti
 
-Le costanti sono dichiarate come le variabili, ma con la keyword `const`.Le costanti possono essere caratteri, stringhe, booleani, o valori numerici.
+Le costanti sono dichiarate come le variabili, ma con la keyword `const`. Le costanti possono essere caratteri, stringhe, booleani, o valori numerici.
 Le costanti non possono essere dichiarati usando la sintassi `:=`.
+
+**TODO iota ecc**
 
 ### Costanti numeriche
 
@@ -259,8 +248,6 @@ for _, v := range sli {	// nessun errore di compilazione
     fmt.Println(v) 
 }
 ```
-
-
 
 ### If statemets
 
@@ -378,6 +365,10 @@ switch v {
 
 #### Type switches
 
+TO DO
+
+
+
 ### Defer
 
 Una dichiarazione di `defer` rimanda l'esecuzione di una funzione fino a quando la funzione che la contiene non ritorna. L'argomento di una dichiarazione `defer` viene valutata immediatamente, ma la funzione viene chiamata solo al ritorno della funzione contenitrice.
@@ -412,7 +403,7 @@ func main() {
 //	   1
 ```
 
-### Pointers
+### Pointers types
 
 Un puntatore contiene l'indirizzo in memoria di una variabile. Il tipo `*T` è un puntatore ad un valore di tipo `T`. Il valore zero di un puntatore è `nil`.
 
@@ -434,7 +425,7 @@ fmt.Println(*p)	// leggo i attraverso il puntatore p
 *p = 23		// metto i attraverso il puntatore p
 ```
 
-### Arrays
+### Arrays types
 
 Un array è una **sequenza fissa** di zero o più elementi di **un particolare tipo**.  A causa della dimensione fissa, in Go gli array sono raramente utilizzati a favore degli **slices**.
 
@@ -482,7 +473,7 @@ arr2 := [4]int{1, 2, 3, 4}
 fmt.Println(arr1 == arr2)	// stampa: true
 ```
 
-### Slices
+### Slices types
 
 Uno slice rappresenta una **sequenza variabile** i cui elementi hanno tutti lo stesso tipo (array dinamici). 
 
@@ -571,7 +562,7 @@ Il risultato della funzione `append` è uno slice contente tutti gli elementi de
 
 Se l'array sottostante ad s (primo parametro) è troppo piccolo (capacità) per contenere tutti i nuovi valori allora viene allocato un nuovo array. Lo slice ritornato punterà a questo nuovo array.
 
-### Maps
+### Maps types
 
 Una hash table è una collezione non ordinata di coppie chiave/valore nella quale tutte le chiave sono distinte e i valori associati ad esse possono essere recuperati, aggiornati o rimossi.
 
@@ -636,7 +627,7 @@ Fare lo subscripting di una `map ` produce quindi 2 valori:
 
 Come per le `slice`, una `map` non può essere confrontata con un'altra `map` . L'unico confronto possibile è con il valore `nil` .  Il "valore zero" di uno tipo `map` è `nil` .
 
-### Structs
+### Structs types
 
 Una `struct` è un tipo di dato aggregato che raggruppa 0 o più valori di qualsiasi tipo vedendoli come singole entità. Ogni valore è chiamato field (campo). 
 
@@ -663,9 +654,7 @@ type Person struct {
 }
 ```
 
-> **NB**: il nome di un field di una `struc` è esportato se comincia con la lettera maiuscola.
-
-Il "valore zero" di una `struct` è composto dai valori zero di ognuno dei suoi fields. 
+> **NB**: il nome di un field di una `struc` è "exported" se comincia con la lettera maiuscola.
 
 Il tipo `struct` senza fields è chiamato *empty struct* e si dichiara con `struct{}`. Ha size pari a zero.
 
@@ -679,28 +668,37 @@ s := struct{}{}
 
 #### Struct Literals
 
-Una struttura letterale rappresetna una nuova struttura allocata, nella quale vengono elencati i valori dei suoi campi. Ci sono 2 forme per una struttura letterale	
+Una `struct` letterale rappresetna una nuova struttura allocata, nella quale vengono elencati i valori dei suoi campi. Ci sono 2 forme per una struttura letterale	
 
 1. La prima richiede che i valori siano specificati per *ogni* campo, nel giusto ordine.
 
-   ```go
-   p := Person{"Samuele", 27}
-   ```
+```go
+p := Person{"Samuele", 27}
+```
 
 2. Nella seconda un valore della `struct` è inizializzato elencando alcuni o tutti i campi della struttura e i suoi corrispondenti valori.
 
-3. ```go
-   p := Person {
-       name: "Samuele", 
-       age:  27
-   }
-   ```
+```go
+// p ha tipo Person
+p := Person {
+    name: "Samuele", 
+    age:  27,
+}
+```
 
 L'operatore prefisso `&` associato ad una struttura letterale ritorna l'indirizzo di tale `struct`.
 
-Se tutti i campi di una `struct` sono comparabili, la `struct` stessa è comparabile. Di conseguenza due espressioni dello stesso tipo possono essere comparate usando gli operatori `==` e `!=` . L'operatore `==` confronta i fields corrispondenti delle due strutture in ordine.
+```go
+// p ha tipo *Person
+p := &Person {	
+    name: "Samuele", 
+    age:  27,
+} 
+```
 
-In go esiste un meccanismo chiamato **struct embedding** che consente di usare il nome di un tipo `struct` come *anonymous filed* di un altro tipo `struct`, fornendo un sintassi abbreviata che semplifica la "dot expression" per accedere ai campi della `struct`. 
+Se tutti i campi di una `struct` sono confrontabili, la `struct` stessa è confrontabile. Di conseguenza due `struct` dello stesso tipo possono essere comparate usando gli operatori `==` e `!=` . L'operatore `==` confronta i fields corrispondenti delle due strutture in ordine.
+
+In Go esiste un meccanismo chiamato **struct embedding** che consente di usare il nome di un tipo `struct` come *anonymous filed* di un altro tipo `struct`, fornendo un sintassi abbreviata che semplifica la "dot expression" per accedere ai campi della `struct`. 
 
 ```go
 type Circle struct {
@@ -728,14 +726,14 @@ type Wheel struct {
 }
 ```
 
-Se la `struct` embedded ha un nome, per accedere bisognerà unsare la "dot expression" completa 
+Se alla `struct` integrata è stato assegnato un nome, per accedere ai sui field bisognerà usare la "dot expression" fornendo il "path" completo, come nell'esempio
 
 ```go
 var w Wheel
 w.Circle.Center.X = 8
 ```
 
-Se invece usiamo un field anonimo è possibile accedere direttamente ai field delle `struct` embedded.
+Se invece usiamo un field anonimo è possibile accedere direttamente ai fields delle `struct` integrata.
 
 ```go
 type Point struct {
@@ -757,4 +755,161 @@ w.X = 8	// accedo direttamente al field X di Point
 
 ```
 
-// ambiguita nomi di filed anonimi
+Poichè i *fields anonimi* hanno nomi impliciti, non è possibile avere due fields anonimi dello stesso tipo, in quanto si incorre in un conflitto di nomi. Per ovviare il problema basta assegnare un nome alla `struct` integrata dovendo però fornire il "path completo" per accedere ai campi della `struct` integrata.
+
+Per costruire una `struct` letterale contenente che contiene una `struct` integrata si usa la seguente sintassi.
+
+```go
+type Person struct {
+	name string
+	age  int
+	Address // anonymous embedded struct
+}
+
+type Address struct {
+    street string
+    number int
+}
+
+// sintassi 1) esempio sopra
+p1 := Person{"Samuele", 27, Address{"Viale Trieste", 429}}
+
+// sintassi 2) esempio sopra
+p2 := Person{
+    name: "Samuele", 
+    age:  27,
+    Address: Address{
+        street: "Viale Trieste",
+        number: 429,
+    },
+}
+```
+
+In questo caso la `struct Address` assume lo stesso nome del tipo.
+
+### Le funzioni new e make
+
+Go ha due primitive di allocazione, le funzioni `make` e `new` del pk `builtin`.
+La funzione `new(Type) *Type` alloca memoria ma non la inizializza, la "mette" al valore zero del tipo `Type`.  Nella terminologia di Go, si dice che la funzione`new(T)` ritorna un puntatore al "valore zero" appena allocato di tipo `T` .
+
+La funzione  `new` si puà utilizzare per tutti i tipi tranne che per i tipi reference come `map`, `slice` e  `channel` per i quali si usa la funzione `make`.
+
+La funzione `make(T, args` crea  `map`, `slice` e  `channel` e ritorna un valore inizializzato (non un valore zero) di tipo `T`.  La ragione della distinzione rispetto alla `new` è dovuta al fatto che questi tipi in realtà rappresentano dei riferimenti a strutture dati che devono essere inizializzate prima dell'uso.
+
+### Functions types
+
+Una dichiarazione di funzione in GO ha un *nome*, una *lista di parametri*, una *lista opzionale di risultati* ed un *corpo*.
+
+```go
+func name(parameter-list) (result-list) {
+    body
+}
+```
+
+La lista dei parametri specifica i nomi e i tipi dei parametri della funzione. **Tutti i parametri di una funzione sono passati per valore**. 
+La lista dei risultati specifica il tipo (volendo anche il nome) dei valori che la funzione ritorna. Una funzione può ritornare qualsiasi numero di risultati (1,2,...n). Se la funzione ritorna un risultato senza nome (solo tipo) o nessun risultato, le parentesi tonde possono essere omesse.
+
+La lista dei parametri può avere 0..n parametri.
+
+```go
+func f() int {...}
+func f(i int) int {...}
+func f(i int, s string) {...}
+```
+
+Quando 2 o piu parametri di una funzione condividono un tipo, è possibile omettere il tipo ed inserirlo solo in fondo alla dichiarazione.
+
+```go
+func f(i, y int) int {...}
+```
+
+Si può dare un nome ai valori di ritorno. Se si decide di dare un nome alle variabli da restiture dalla funzione la sintassi è la seguente:
+
+```go
+func f(i int) (x, y int) {
+    x = 5 + 4
+    y = x * 4
+    return
+}
+```
+
+I nomi dati alle variabili di ritorno dovrebbero essere significativi per documentare il tipo di ritorno.
+
+Lo statement `return` senza gli argomenti viene detto **naked** e ritorna i/il valori/e di ritorno a cui è stato dato un nome.
+
+#### Valori Funzione
+
+Le funzioni in Go sono *first-class value*: come altri valori **le funzioni hanno dei tipi** e possono essere **assegnate** ad una variabile o **passate** ad una funzione o **ritornate** da una funzione. 
+
+Il valore di un variabile di tipo `func` non inizializzata è `nil` (cioè il valore zero di una funzione).
+
+```go
+var f func() int	// funzione dichiarata ma non inizializzata, ha valore nil
+
+fmt.Printf("%T\n", f)	// stampa il tipo: func() int
+fmt.Println(f == nil)	// stampa: true
+
+// dichiarazione fuori dal main (ovviamente)
+func f1() int { ... }	// f1 ha tipo func() int
+func f2(n int) string { ... } // f2 ha tipo func(int) string
+
+func f3() func() int { // ritorna una funzione
+    return f1
+}
+```
+
+Un valore funzione può essere chiamato come qualsiasi altra funzione.
+```go
+x := 4
+func fun(x int) int {
+    return x * x
+}
+f := fun	// valore funzione asseganto a variabile
+fmt.Println(f())	// stampa: 16
+```
+
+I valori funzione possono essere confrontati solo con il valore `nil`.
+
+#### Funzioni anonime
+
+Le funzioni con nome possono essere dichiarate solo a livello di package, ma è possibile usare una *funzione letterale* per denotare un valore funzione con una espressione. Una funzione letterale è scritta come una dichiarazione di funzione ma senza un nome che segue la keyword `func`. Si tratta di un'espressione e il suo valore è chiamato *funzione anonima*.
+
+```go
+f := func() string {
+    return "hello"
+}
+
+fmt.Println(f())	// stampa : hello
+
+// funziona anonima dichiarata e chiamata
+func() int {
+    return 1
+}() 
+```
+
+#### Funzioni Closures
+
+Le funzioni in Go possono essere *closures*. Una closure è un valore funzione che fa riferimento a variabili esterne al suo corpo. Questa funzione può accedere e assegnare valori alla variabili a cui fa riferiemento.
+
+```go
+func adder() func(int) int {
+    sum := 0
+    return  func(x int) int {
+        sum += x
+        return sum
+    }
+}
+
+func main() {
+    pos := adder()
+    for i := 0; i < 10; i++ {
+        fmt.Print(pos(i), " ")
+    }
+}
+
+// stampa: 0 1 3 6 10 15 21 28 36 45 
+```
+
+### Methodi
+
+### Interfacce
