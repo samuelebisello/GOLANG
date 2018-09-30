@@ -235,7 +235,7 @@ Per ogni iterazione, i valori di iterazione sono prodotti seguendo le rispettive
 | ---------------- | ------------------ | ------------ | ---------- |
 | array o slice    | a [n]E, *[n]E, []E | Index i int  | a[i] E     |
 | String           | s string           | Index i int  | s[i] rune  |
-| map              | m map[K]V          | Key k K      |            |
+| map              | m map[K]V          | Key k K      | m[k] V     |
 | Channel          | c chan E, <-chan   | elemento e E |            |
 
 ### Blank Identifier
