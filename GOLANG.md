@@ -75,7 +75,7 @@ Una dichiarazione di tipo definisce un nuovo **tipo** con nome (**named type**),
 Il nuovo tipo fornisce un modo per separare usi differenti del tipo sottostante in modo che non possano essere mischiati se non intenzionalmente.
 
 ```go
-type name underlying-type
+type name underlyingType
 ```
 
 Questa dichiarazione molto spesso avviene a livello di package.
@@ -339,7 +339,7 @@ switch {
 è possibile raggruppare più casi per uno stesso comportamento con una lista separata da `,`
 
 ```go
-c = '?'
+c := '?'
 switch c {
     case ' ', '?', '&', '=':
     	return true
