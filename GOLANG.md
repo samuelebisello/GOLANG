@@ -60,10 +60,10 @@ Sia il `type` che `= expression` possono essere omessi, ma non entrambi.
 2. Se invece è  omessa l'espressione inizializzatrice allora il valore iniziale della variabile è il valore zero per quel tipo.
 
 ```go
-var str, b = "hello", true // caso 1, type inferece
-var i = 27      	       // caso 1, type inference
+var str, b = "hello", true 	// caso 1, type inferece
+var i = 27      	        // caso 1, type inference
 
-var i int 				   // caso 2, inizializzato con valore zero per tipo int
+var i int 			// caso 2, inizializzato con valore zero per tipo int
 ```
 
 Con lo statement `var` è possibile dichiarare anche una lista di variabili.
@@ -94,7 +94,7 @@ La *short variable declaration* consiste in dichiarazione + inizializzazione con
 ```go
 func main() {  
     i:= 8
-    i, k:= 7,9 // i assegnamento, k dichiarazione + inizializzazione
+    i, k:= 7,9	// i assegnamento, k dichiarazione + inizializzazione
 }
 ```
 
@@ -107,16 +107,16 @@ Se l'espressione ha un **tipo**, la nuova variabile assume quel tipo.
 ```go
 var i int
 
-j := i    // j è un int
-var k = i // k è un int
+j := i    	// j è un int
+var k = i	// k è un int
 ```
 
 Se invece il valore dell'espressione è una **costante numerica** senza tipo, la nuova variabile potrebbe assumere come tipo un  `int`, `float64`, o `complex128` a seconda della precisione della costante
 
 ```go
-i := 42     	  // int
-f := 3.142  	  // float64
-g := 0.867 + 0.5i // complex128
+i := 42     	  	// int
+f := 3.142  	  	// float64
+g := 0.867 + 0.5i	// complex128
 ```
 
 ### Valori zero
@@ -288,7 +288,7 @@ func pow(x, n, lim float64) float64 {
 	if v := math.Pow(x, n); v < lim {
 		return v
     } else {
-        fmt.Println(v) // v è visibile 
+        fmt.Println(v)	// v è visibile 
     }
 	return lim
 }
@@ -316,7 +316,7 @@ La switch expression può essere preceduta da uno statement semplice.
 ```go
 // switch preceduto da statement semplice. i nello scope dello switch
 switch i := expression; i {  
-    case value1: // se i == value1 tutto il resto non viene valutato
+    case value1:	// se i == value1 tutto il resto non viene valutato
     	...
     case value2:
     	...
@@ -364,9 +364,9 @@ Quando un case viene eseguito (quindi matcha con la switch expression) si esce d
 ```go
 v := 100
 switch v {
-    case 100:					// invece di stampare 100 e uscire con il break implicito
-    	fmt.Println(100)		// con fallthrough il flusso dell'esecuzione passa al case
-    	fallthrough				// successivo
+    case 100:			// invece di stampare 100 e uscire con il break implicito
+    	fmt.Println(100)	// con fallthrough il flusso dell'esecuzione passa al case
+    	fallthrough		// successivo
     case 1:
     	fmt.Println(1)
     	fallthrough
@@ -390,7 +390,7 @@ func main() {
 }
 
 // stampa: hello
-//		   world
+//	   world
 ```
 
 Le chiamate a funzione `defer` sono inserita in uno stack (pila). Quando la funzione che contiene gli statement `defer`ritorna, le sue chiamate posticipate sono eseguito in ordine Last-In-First-Out, quindi al contrario dell'ordine di dichiarazione nel corpo della funzione.
@@ -406,10 +406,10 @@ func main() {
 }
 
 // stampa: hello defer
-//		   4
-//		   3
-//		   2
-//		   1
+//	   4
+//	   3
+//	   2
+//	   1
 ```
 
 ### Pointers
@@ -430,8 +430,8 @@ p := &i
 L'operatore `*` si chiama operatore di dereferenziazion/indirezione ed applicato ad un puntatore restituisce l'oggetto puntato
 
 ```go
-fmt.Println(*p) // leggo i attraverso il puntatore p
-*p = 23			// metto i attraverso il puntatore p
+fmt.Println(*p)	// leggo i attraverso il puntatore p
+*p = 23		// metto i attraverso il puntatore p
 ```
 
 ### Arrays
@@ -442,7 +442,7 @@ Il tipo `[n]T` è un array di `n` valori di tipo `T`. L'espressione
 
 ```go
 var a [10]int	// array di 10 interi, inizializzati con il valore zero per il tipo
-				// il tipo è [10]int
+		// il tipo è [10]int
 ```
 
 dichiara una variabile `a` come un array di dieci interi
@@ -453,7 +453,7 @@ Per accedere agli elementi di un array si usa la consueta notazione di subscript
 
 ```go
 fmt.Println(a[0])	// stampa il primo elemento dell array
-a[0] = 10			// assegnazione
+a[0] = 10		// assegnazione
 ```
 
 La funzione `len` del pkg `builtin `ritorna il # degli elementi dell'array.
@@ -513,7 +513,7 @@ s2 := s[3:5]	// len == 2, capacity == 4, array sottostante == s
 Con l'operatore di slice viene selezionato un intervallo semiaperto che include il primo elemento ma esclude l'ultimo. La seguente espressione crea uno slice che include gli elementi dall'indice 1 al 2.
 
 ```go
-a := [3]string{"stone", "scissor", "paper"}	//creazione array
+a := [3]string{"stone", "scissor", "paper"}	// creazione array
 s := a[1:3]
 ```
 
