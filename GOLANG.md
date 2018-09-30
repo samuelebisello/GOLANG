@@ -1,6 +1,6 @@
 # GOLANG
 
-### Visibility (Exported - Unexported)
+### Visibilità (Exported - Unexported)
 
 In Go un nome viene esportato (exported, pubblico), ossia è visibile al di fuori del package se comincia con la lettera maiuscola.
 Quando si importa un package, ci si può solo riferire a i nomi "exported" (pubblici). Qualsiasi nome "unexported" (privato) non è accessibile al di fuori del package.
@@ -249,6 +249,17 @@ Per ogni iterazione, i valori di iterazione sono prodotti seguendo le rispettive
 | map              | m map[K]V          | Key k K      |            |
 | Channel          | c chan E, <-chan   | elemento e E |            |
 
+### Blank Identifier
+
+il *blank identifier* `_` può essere assegnato o dichiarato con qualsiasi valore di qualsiasi tipo, e il valore viene scartato in modo innocuo (in go ogni variabile cdeve essere usato altrimenti viene segnato un errore di compilazione). Si tratta di un valore di sola scrittura da utilizzare come segnaposto dove è necessaria una variabile ma il valore non ci interessa.
+
+```go
+sli := []int{1, 2, 3, 4}
+for _, v := range sli {	// nessun errore di compilazione
+    fmt.Println(v) 
+}
+```
+
 
 
 ### If statemets
@@ -423,42 +434,6 @@ fmt.Println(*p) // leggo i attraverso il puntatore p
 *p = 23			// metto i attraverso il puntatore p
 ```
 
-### Structs
-
-Una `struct` è un tipo di dato aggregato che raggruppa 0 o più nomi di vari tipi come singole entità. Ogni valore è chiamato field (campo). I campi di una `struct` sono accedibili attraverso l'operatore `.`. 
-
-I campi di una `struct` possono essere acceduti attraverso un puntatore alla `struct`. Per fare ciò si dovrebbe prima dereferenziare il puntatore e poi accedere al campo della struttura `(*p).X`. Tuttavia il linguaggio permette di scrivere direttamente `p.X` senza dereferenziare esplicitamente.
-
-```go
-type Person struct {
-    name string
-    age int
-}
-```
-
-Il valore zero di una `struct  `è composto dal valore zero di ognuno dei suoi fields.
-
-#### Struct Literals
-
-Una struttura letterale rappresetna una nuova struttura allocata, nella quale vengono elencati i valori dei suoi campi. Ci sono 2 forme per una struttura letterale	
-
-1. La prima richiede che i valori siano specificati per *ogni* campo, nel giusto ordine.
-
-   ```go
-   p := Person{"Samuele", 27}
-   ```
-
-2. Nell aseconda un valore della struct è inizializzato elencando alcuni o tutti i campi della struttura e i suoi corrispondenti valori.
-
-3. ```go
-   p := Person {
-       name: "Samuele", 
-       age:  27
-   }
-   ```
-
-L'operatore prefisso `&` associato ad una struttura letterale ritorna l'indirizzo di tale `struct`.
-
 ### Arrays
 
 Un array è una **sequenza fissa** di zero o più elementi di **un particolare tipo**.  A causa della dimensione fissa, in Go gli array sono raramente utilizzati a favore degli **slices**.
@@ -569,7 +544,7 @@ L'espressione che inizializza uno slice è differente da quella che inizializza 
 s := []int{1, 2, 3, 4, 5, 6, 7}	// dichiarazione slice iniziallizzato con slice letterale
 ```
 
- Il "valore zero" di uno tipo slice è `nil` .
+ Il "valore zero" di uno tipo `slice` è `nil` .
 
 A differenza di un array, uno slice non è comparabile. Dunque non è possibile usare l'operatore `==` per verificare se due slice contengono lo stesso numero di elementi. L'unica comparazione di slice legale è con `nil` . 
 
@@ -596,15 +571,190 @@ Il risultato della funzione `append` è uno slice contente tutti gli elementi de
 
 Se l'array sottostante ad s (primo parametro) è troppo piccolo (capacità) per contenere tutti i nuovi valori allora viene allocato un nuovo array. Lo slice ritornato punterà a questo nuovo array.
 
-
-
 ### Maps
 
-### 
+Una hash table è una collezione non ordinata di coppie chiave/valore nella quale tutte le chiave sono distinte e i valori associati ad esse possono essere recuperati, aggiornati o rimossi.
 
+In Go una mapè un riferimento ad un a hash table e un tipo `map` è scritto `map[K]V` dove `K` e `V` sono rispettivamente i tipi di chiave e valore contenuti al suo interno.
 
+Tutte le chiavi in una determinata mappa sono dello stesso tipo, e tutti i valori sono dello stesso tipo ma le chiavi non possono essere dello stesso tipo dei valori.
 
+Il tipo k delle chiavi deve essere un tipo **comparabile** usando l'operatore`==` , in tal modo è possibile verificare se una data chiave è uguale in un già presente.
 
+La funzione `make` del pkg `builtin` può essere usata per creare una `map`. 
 
+```go
+m := make(map[K]V)
 
+```
 
+È inoltre possibile usare una map letterale per creare una nuova `map` popolata con delle coppie chiave/valore.
+
+```go
+m := map[string]int{
+    "samuele": 27,
+    "luca":    26,
+}
+
+// è equivalente a 
+m := make(map[string]int)
+m["samuele"] = 27
+m["luca"] = 26
+
+// un alternativa per creare un nuova mappa vuota
+m := map[string]int{}
+```
+
+Gli elementi di un `map` sono **accessibili** attraverso l'usuale notazione di subscripting
+
+```go
+m["samuele"] = 29	// modifica l'elemento m["samuele"]
+```
+
+Gli elementi di una mappa possono essere **rimossi** con la funzione `delete` del pkg `builtin` .
+
+```go
+delete(m,"samuele")	// rimuove l'elemento completo m["samuele"], sia chiave che valore
+```
+
+Tutte queste operazione sono sicure anche se gli elementi non sono presenti nella` map`. accedere ad una `map` usando una chiave che non è presente ritorna il "valore zero" del tipo dei valori della mappa.
+
+> **NB**: Quando si accede ad un elemento della mappa tramite subscripting troviamo sempre un valore. Se la chiave è presente, verrà restituito il corrispondente valore, altrimenti veeà restituito il valore zero del tipo dei valori. Spesso vogliamo sapere se l'elemento con una certa chiave è realmente presetne ed ha chiave con valore 0, oppure se non è presente nella `map`. Per fare ciò si usa il cosidetto costrutto **comma ok**.
+
+```go
+value, ok := m["samuele"]
+if !ok {...}	// valore con chiave "samuele" non presente nella map m
+
+// forma equivalente
+if value, ok := m["samuele"]; !ok {...}
+```
+
+Fare lo subscripting di una `map ` produce quindi 2 valori:
+
+- il primo il valore di `m["samuele"]`
+- il secondo è un booleano che ci dice se esiste l'elemento con quella chiave o no
+
+Come per le `slice`, una `map` non può essere confrontata con un'altra `map` . L'unico confronto possibile è con il valore `nil` .  Il "valore zero" di uno tipo `map` è `nil` .
+
+### Structs
+
+Una `struct` è un tipo di dato aggregato che raggruppa 0 o più valori di qualsiasi tipo vedendoli come singole entità. Ogni valore è chiamato field (campo). 
+
+```go
+type Person struct {
+    field1 string
+    field2 int
+}
+```
+
+I campi di una `struct` sono accessibili attraverso l'operatore `.` dot. I campi di una `struct` possono anche essere acceduti attraverso un puntatore alla `struct`. 
+Per fare ciò si dovrebbe prima dereferenziare il puntatore e poi accedere al campo della struttura `(*p).X`. Tuttavia il linguaggio permette di scrivere direttamente `p.X` senza dereferenziare esplicitamente.
+
+Un `struct` di tipo `S` non può contenere un valore di tipo `S`, ma può dichiarare un field puntatore a `S`.
+
+Il "valore zero" di una `struct    `è composto dal valore zero di ognuno dei suoi fields.
+
+I fields di solito sono scritti uno per riga, con il nome che precede il tipo (vedi sopra). Campi consecutivi con lo stesso tipo possono essere combinati.
+
+```go
+type Person struct {
+    field1, field2 string
+    field2 int
+}
+```
+
+> **NB**: il nome di un field di una `struc` è esportato se comincia con la lettera maiuscola.
+
+Il "valore zero" di una `struct` è composto dai valori zero di ognuno dei suoi fields. 
+
+Il tipo `struct` senza fields è chiamato *empty struct* e si dichiara con `struct{}`. Ha size pari a zero.
+
+```go
+var s struct {}
+
+// forma equivalente
+
+s := struct{}{} 
+```
+
+#### Struct Literals
+
+Una struttura letterale rappresetna una nuova struttura allocata, nella quale vengono elencati i valori dei suoi campi. Ci sono 2 forme per una struttura letterale	
+
+1. La prima richiede che i valori siano specificati per *ogni* campo, nel giusto ordine.
+
+   ```go
+   p := Person{"Samuele", 27}
+   ```
+
+2. Nella seconda un valore della `struct` è inizializzato elencando alcuni o tutti i campi della struttura e i suoi corrispondenti valori.
+
+3. ```go
+   p := Person {
+       name: "Samuele", 
+       age:  27
+   }
+   ```
+
+L'operatore prefisso `&` associato ad una struttura letterale ritorna l'indirizzo di tale `struct`.
+
+Se tutti i campi di una `struct` sono comparabili, la `struct` stessa è comparabile. Di conseguenza due espressioni dello stesso tipo possono essere comparate usando gli operatori `==` e `!=` . L'operatore `==` confronta i fields corrispondenti delle due strutture in ordine.
+
+In go esiste un meccanismo chiamato **struct embedding** che consente di usare il nome di un tipo `struct` come *anonymous filed* di un altro tipo `struct`, fornendo un sintassi abbreviata che semplifica la "dot expression" per accedere ai campi della `struct`. 
+
+```go
+type Circle struct {
+    X, Y, Radius int
+}
+
+type Wheel struct {
+    X, Y, Radius, Spokes
+}
+
+// fattorizziamo usando struct embedding
+
+type Point struct {
+    X, Y int
+}
+
+type Circle struct {
+    Center Point
+    Radius int
+}
+
+type Wheel struct {
+    Circle Circle
+    Spokes int
+}
+```
+
+Se la `struct` embedded ha un nome, per accedere bisognerà unsare la "dot expression" completa 
+
+```go
+var w Wheel
+w.Circle.Center.X = 8
+```
+
+Se invece usiamo un field anonimo è possibile accedere direttamente ai field delle `struct` embedded.
+
+```go
+type Point struct {
+    X, Y int
+}
+
+type Circle struct {
+    Point	// field anonimo
+    Radius int
+}
+
+type Wheel struct {
+    Circle	// field anonimo
+    Spokes int
+}
+
+var w Wheel
+w.X = 8	// accedo direttamente al field X di Point
+
+```
+
+// ambiguita nomi di filed anonimi
