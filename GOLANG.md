@@ -60,11 +60,13 @@ func main() {
 
 ### Tempo di vita di una variabile
 
-Il tempo di vita di una variablie è l'intervallo di tempo durante il quale esiste mentre il programma viene eseguito. 
+Il tempo di vita di una variablie è l'intervallo di tempo durante il quale esiste mentre il programma è in esecuzione. 
 
 Il tempo di vita di una variabile a livello di package è **l'intera esecuzione del programma**. 
 
-Invece una variabile locale ha un tempo di vita dinamico: una nuova istanza è creata ogni qual volta lo statement di dichiarazione viene eseguito, e **la variabile vive fino a che non diventa irragiungibile**. Uno degli effeti di questa caratteristica in Go sono le *closures*.
+Una variabile locale invece ha un tempo di vita dinamico: una nuova istanza è creata ogni qual volta lo statement di dichiarazione viene eseguito, e **la variabile vive fino a che non diventa irragiungibile**. 
+
+Uno degli effeti di questa caratteristica in Go sono le *closures*.„
 
 ### Dichiarazione di Tipo
 
@@ -153,23 +155,177 @@ f := float64(i)
 u := uint(f)
 ```
 
-A differenza del C, in Go l'assegnamento tra elementi di tipi differenti rechiede una **conversione esplicita**. 
-**AGGIUNGERE**
+A differenza del C, in Go l'assegnamento tra elementi di tipi differenti richiede una **conversione esplicita**. 
+
+Per ogni tipo `T`, è sempre possibile un'operazione di conversione `T(v)` che converte il il valore `v` al tipo `T`. Una conversione da un tipo ad un altro è possibile se: 
+
+- `T` e `v`  hanno lo stesso *tipo sottostante*
+- `T` e `v`  sono di tipo *unamed pointer* che punta ad una variabile dello stesso *tipo sottostante*
+
+Questa conversione cambia cambia il tipo ma non la rappresentazione del valore. Se `v `è assegnabile a `T`, la conversione è permessa ma è un'operazione ridondante.
+
+Le conversione sono permesse anche tra:
+
+- tipi numerici
+- stringhe
+- alcuni tipi di slices
 
 ### Stringhe
 
-**TO DO**
+#### **Intro**
+
+Per riferirsi ai caratteri in modo non ambiguo, ogni carattere è associato ad un numero, chiamato **code point**. I caratteri sono salvati nel computer come uno o più bytes. 
+
+Una codifica di caratteri (character encoding) fornisce una chiave per interpretare il codice. È un insieme di mappature tra bytes nel computer e caratteri nell'insieme di caratteri. Senza la chiave, i dati sono spazzatura. 
+
+Quando viene inserito del testo usando una tastiera (o altro), la codifica di caratteri mappa i caratteri inseriti in specifici byte nella memoria del computer e quindi per visualizzare il testo converte nuovamente i byte in caratteri.
+
+Una stringa è una sequenzaimmutabile di bytes (uint8). Le stringhe possono contenere dati arbitrari, inclusi bytes con valore 0, ma solitamente contengono testo leggibile. 
+
+Una stringa contiene una array di bytes che una volta creato, è immutabile. Al contrario, gli elementi di una slice di byte possono essere modificati liberamente. 
+
+Una *stringa* può essere convertita in uno *slice di byte* e viceversa.
+
+------
+
+**Le stringhe sono interpretate come sequenze codificate in UTF-8 di Unicode code points (runes).**
+
+La funzione `len` del pkg `builtin` restituisce il # di bytes (non runes) in una stringa, e l'operazione di indicizzazione `str[i]` restituisce l'i-esimo byte della stringa.
+
+```go
+str := "samuele"
+
+fmt.Println(str[0])	// stampa 115
+fmt.Println(string(str[0])) //stampa "s"
+```
+
+L'operazione di *substring* `str[i:j]` produce una nuova stringa contenente i bytes della stringa originale partendo dall'indice `i` fino all'indice `j` escluso. 
+
+```go
+str := "samuele"
+
+str[0:3]	// produce la stringa "sam"
+```
+
+L'operatore `+` crea una nuova stringa concatenandole
+
+```go
+str1 := "ciao"
+str2 := " "
+str3 := "mondo"
+
+str1 + str2 + str3	// produce la stringa "hello world"
+```
+
+Le stringhe possono essere confrontate con gli operatori di comparazione come `==`, `<`. La comparazione viene fatta byte per byte.
+
+```go
+str := "samuele"
+
+fmt.Println(str[0])	// stampa 115
+fmt.Println(str[1])	// stampa 97
+fmt.Println(str[1] < str[0])	// stampa true
+```
+
+#### Stringhe letterali
+
+Una valore di tipo stringa può essere scritto come una *stringa letterale*, una sequenza di bytes racchiusi da doppi apici `"Hello"`.
+
+Poichè i file sorgenti in Go sono sempre codificati in UTF-8 e le stringhe in GO sono convenzionalmente interpretate come UTF-8, e possibile includere Unicode code point (rune) nelle stringhe letterali.
+
+In una stringa letterale con doppi apici, le sequenze di escape che iniziano con la barra rovesciata `\` possono essere utilizzate per inserire valori di byte nella stringa. Un insieme di escapes gestisce codici di controllo ASCII come *newline*, *carriage return* e *tab*.
+
+```go
+\a	// alert o bell
+\b	// backspace
+\f	// form feed
+\n	// new line
+\r	// carriage return
+\t	// tab
+\v	// vartical tab
+\'	// single quote (solo su rune letterali)
+\"	// double quote (solo con letterali stringa)
+\\	// backslash
+
+
+```
+
+Una *stringa letterale raw* è scritta tra backquotes  ` `` ` invece che double quotes `""`. In una stringa letterale raw le sequenze di escape non sono processate
+
+```go
+str := ` Ciao
+Mondo
+`
+// stampa: Ciao
+//		  Mondo
+```
+
+Le stringe letterali raw anche usate per scrivere espressioni regolari, in quanto tendono ad avere un gran numero di backslashes.
 
 ### Constanti
 
-Le costanti sono dichiarate come le variabili, ma con la keyword `const`. Le costanti possono essere caratteri, stringhe, booleani, o valori numerici.
+Le costanti sono dichiarate come le variabili, ma con la keyword `const` e definiscono un valore costante il quale previene accidentali modifiche durante l'esecuzione del programma. 
+
+```go
+const name type = expression
+```
+
+Il tipo sottostante di ogni costante è un tipo base: *booleano, stinga* o *numerico*, di conseguenza una costante può assumere solo questi tipi. 
+
 Le costanti non possono essere dichiarati usando la sintassi `:=`.
 
-**TODO iota ecc**
+Come per le variabili, una sequenza di costanti può apparire in una dichiarazione. Può essere appropriato per un gruppo di valori correlati
 
-### Costanti numeriche
+```go
+const (
+	pi = 3.14159
+    e  = 3.14159
+)
+```
 
-Le costanti numeriche sono valori ad alta precisione. Una costante senza tipo prende il tipo dal suo contesto.
+Quando una sequenza di costanti è dichiarata in gruppo, l'espressione alla destra dell' `=` può essere omessa per tutti tranne per la prima del gruppo, il che implica che l'espressione precedente e il suo tipo vengono usate nuovamente
+
+```go
+const (
+	a = 1
+	b		// b == 1
+    c = 2
+    c		// c == 2
+)
+```
+
+#### Il generatore di costanti iota
+
+Una dichiarazione di costante può fare uso del *generatore di costante* `iota`, il quale viene usato per creare una sequenza di valori correlati senza specificare esplicitamente ciascuno di essi. In una dichiarazione di costante il valore di `iota` inizia da `0` e viene incrementato di uno per ogni elemento in sequenza.
+
+```go
+type Weekday int
+
+const (
+	Sunday Weekday = iota		// valore 0
+    Monday						// valore 1
+    Tuesday						// valore 2
+    Wednesday					// valore 3
+    Thirsday					// valore 4
+    Friday						// valore 5
+    Saturday					// valore 6
+)
+```
+
+### Costanti senza tipo
+
+Anche se una costante può assumere qualsiasi tipo di base  (numeric , bool, string), molte costanti sono associate ad un tipo particolare. Il compilatore rappresenta questa costanti con una precisione numerica maggiore rispetto ai valori dei tipi di base. Si può. assumere una precisione di 256 bit. 
+
+Ci sono sei tipologie di "uncommitted constants":
+
+- Untyped boolean
+- Untyped integer
+- untyped rune
+- untyped floating-point
+- Untyped complex
+- untyped string
+
+Rimandando l'assunzione di un tipo, le costanti non tipizzate non solo mantengono la maggiore precisione piu a lungo, ma possono partecipare a molte più espressioni rispetto alle costanti con tipo s**enza richiedere conversioni**.
 
 ### For statements
 
