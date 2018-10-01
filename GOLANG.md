@@ -39,7 +39,7 @@ Anche in questo caso la dichiarazione di una variabile può includere l'iniziali
 var i, j int = 1, 2
 ```
 
-### Short variables declaration
+#### Short variables declaration
 
 **Solo all'interno di una funzione** è possibile utilizzare (molto consigliato) l'operatore `:=` (short variable declaration) al posto della dichiarazione con `var` (vedi sopra). 
 
@@ -58,7 +58,7 @@ func main() {
 }
 ```
 
-### Tempo di vita di una variabile
+#### Tempo di vita di una variabile
 
 Il tempo di vita di una variablie è l'intervallo di tempo durante il quale esiste mentre il programma è in esecuzione. 
 
@@ -262,7 +262,7 @@ Mondo
 
 Le stringe letterali raw anche usate per scrivere espressioni regolari, in quanto tendono ad avere un gran numero di backslashes.
 
-### Constanti
+### Costanti
 
 Le costanti sono dichiarate come le variabili, ma con la keyword `const` e definiscono un valore costante il quale previene accidentali modifiche durante l'esecuzione del programma. 
 
@@ -312,7 +312,7 @@ const (
 )
 ```
 
-### Costanti senza tipo
+#### Costanti senza tipo
 
 Anche se una costante può assumere qualsiasi tipo di base  (numeric , bool, string), molte costanti sono associate ad un tipo particolare. Il compilatore rappresenta questa costanti con una precisione numerica maggiore rispetto ai valori dei tipi di base. Si può. assumere una precisione di 256 bit. 
 
@@ -521,7 +521,35 @@ switch v {
 
 #### Type switches
 
-TO DO
+Un *type switch* è un costrutto che permette diversi **assertion types** in serie. Si tratta di un regolare *switch statement* ma i casi in un *type switch* specificano tipi (non valori), e questi sono confrontati con il tipo del valore contenuto nell'interfaccia specificata.
+
+```go
+switch v := i.(type) {
+case T:
+    // qui v ha tipo T
+case S:
+    // qui v ha tipo S
+default:
+    // nessun match; qui v ha lo stesso tipo di i
+}
+
+func do(i interface{}) {
+	switch v := i.(type) {
+	case int:
+		fmt.Printf("is an int")
+	case string:
+		fmt.Printf("%q is %v bytes long\n", v, len(v))
+	default:
+		fmt.Printf("I don't know about type %T!\n", v)
+	}
+}
+
+func main() {
+	do(21)		// Twice 21 is 42
+	do("hello")	// "hello" is 5 bytes long
+	do(true)	// I don't know about type bool!
+}
+```
 
 
 
@@ -1066,6 +1094,236 @@ func main() {
 // stampa: 0 1 3 6 10 15 21 28 36 45 
 ```
 
-### Methodi
+#### Funzioni Variadic 
+
+Una *funzione variadic* può essere chiamata con un numero variabile di argomenti. Per dichiarare una *funzione variadic* il tipo del parametro finale della funzione deve essere preceduto dal''operatore `...` , il quale indica che la funzione può essere  chiamata con un qualsiasi numero di argomenti di quel tipo
+
+```go
+func f(s string, i ...int) { ... }
+```
+
+Implicatamente Il chiamante (chi chiama la funzione) alloca un array, copia i valori al suo interno e passa uno slice dell'intero array alla funzione. 
+
+Anche se `...int` si comporta come uno slice all'interno del corpo della funzione, il tipo di una *funzione variadic* è diverso dal tipo di una funzione con un parametro di tipo slice.
+
+```go
+func f(s string, i ...int) { ... }
+func s(s string, sli []int) { ... }
+
+fmt.Printl("%T\n", f)	// stampa func(string, ...int)
+fmt.Printl("%T\n", f)	// stampa func(string, []int)
+```
+
+Se invece si vuole passare ad una funzione variadic uno slice è possibile farlo con la seguente sintassi
+
+```go
+func f(s string, i ...int) { ... }
+values := []int{1, 2, 3, 4}
+
+fmt.Println(f(values...))
+```
+
+### Metodi
+
+Un metodo è dichiarato con una variante rispetto alla ordinaria dichiarazione di funzione nel quale compare un parametro extra racchiuso tra parentesi tonde prima del nome della funzione. 
+
+**Il parametro extra è chiamato *receiver*. Il parametro receiver collega la funzione al tipo di quel parametro.**
+
+```go
+func (receiver) name(parameter-list) (result-list) {
+    body
+}
+```
+
+Per invocare un metodo agganciato ad un tipo si una il *selettore*, il quale selezione il metodo del tipo.
+
+```go
+p := person {"samuele", 27}
+p.SayHello()	// selettore
+```
+
+In Go è possibile associare metodi ad ogni tipo, tipi base compreso
+
+Il receiver di un metodo può essere anche di tipo puntatore. Questo significa che i metodi con receiver di tipo puntatore possono modificare il valore a cui puntano. Cosa non possibile dichiarando un receiver come tipo non puntatore.
+
+```go
+func (p *person) setName(name string) {
+    p.name = name	// side effect su p
+}
+
+func (p person) setname(name string) {
+    p.name = name	// nessun side effect, p è una copia
+}
+```
+
+Funzioni con un argometno di tipo puntatore **devono** ricevere un puntatore come tipo. Invece metodi con *receiver* di tipo puntatore possono essere invocati su sia su un valore che su un puntatore.
+
+```GO
+func (p *person) setName(name string) {
+	p.name = name
+}
+
+func (p person) setAge(age int) {
+	p.age = age
+}
+
+p := &person{"Samuele", 27}
+p2 := *p
+
+p.setName("Marco")	// ok
+p.setAge(45)		// ok
+p2.setName("Luca")	// ok
+p2.setAge(33)		// ok
+
+```
+
+È consigliato usare *receiver* di tipo puntatore:
+
+- è possibile fare side effetcs
+- si evita la copia del valore ad ogni chiamata al metodo
+
+#### Method sets
+
+Un insieme di metodi determina quali metodi sono associati ad un tipo. 
+
+L'insieme dei metodi di un *tipo interfaccia* **è** la sua interfaccia. 
+
+L'insieme dei metodi di qualsiasi altro tipo `T` invece è composto da tutti i metodi dichiarati con *receiver* di tipo `T`.
+
+L'insieme dei metodi del corrispondente tipo puntatore `*T` è l'insieme di tutti i metodi dichiarati con *receiver* di tipo `*T` oppure `T`, ossia contiene anche l'insieme dei metodi di `T`.
+
+**L'insieme di metodi di un tipo determina le interfacce che il tipo implementa e i metodi che possono essere chiamati utilizzando un ricevitore di quel tipo**.
+
+Quando un tipo `T` implementa un'interfaccia `I` (implementando i suoi metodi) assume anche il tipo `I`. Di conseguenza è possibile usare un `T` quando è richiesto un tipo `T` o un tipo `I `. 
+
+Valgono le seguenti regole:
+
+- Tuttavia quando  `T`  implementa un metodo `m` dell'interfaccia `I`, se il *receiver* di `m` ha tipo `T` , il metodo viene aggiunto al **method set** di `T `e di `*T`;
+- Se inece il *receiver* di `m` ha tipo `*T`, il metodo viene aggiunto solo al **method set** di `*T`
+
+```go
+/* Receivers		Values */
+(t T)				T and *T
+(t *T)				*T
+```
+
+Di conseguenza qualora si dichiari un *receiver* di tipo puntatore `*T` per utilizzare una valore `T` al posto di un'interfaccia da lui implementata bisognerà fornire il tipo `*T`, ossia un puntatore a `T`.
+
+```go
+type person struct {
+	name string
+	age  int
+}
+
+type speaker interface {
+	speak()
+}
+
+func (p person) getName() string {
+	return p.name
+}
+
+func (p *person) speak() {
+	fmt.Println("hello", p.getName(), "i'm", p.getAge())
+}
+
+func (p *person) getAge() int {
+	return p.age
+}
+
+func main() {
+	p := person{"sam", 23}
+    spk(p)	// errore: è richiesto uno tipo *p
+    spk(&p) // ok
+}
+
+func spk(s speaker) {
+	s.speak()
+}
+```
 
 ### Interfacce
+
+Un'interfaccia è un **tipo** astratto ed è definito come un insieme di signature di metodi. 
+
+**Un valore di tipo interfaccia può contenere qualsiasi valore che implementi i sui metodi**. 
+
+```go
+type Speaker interface {
+    speak(message string) string 
+}
+```
+
+Un tipo implementa un'interfaccia implementando i suoi metodi. Non ci sono dichiarazioni esplicite per implementare un interfaccia. Viene fatto automaticamente dal linguaggio. Questo rende possibile adattare tipi a codice già scritto al quale non è possibile mettere mano.
+
+La regola di assegnazione per le interfacce è molto semplice: un espressione può essere assegnata ad un interfaccia solo se il suo tipo soddisfa quell'interfaccia, ossia implementa tutti i suoi metodi.
+
+Un interfaccia senza metodi è chiamata tipo *interfaccia vuota* (**empty interface**) e poichè non richiede alcun requisito per essere soddisfatta (nessun metodo da implementare), è possibile assegnare qualsiasi valore ad una interfaccia vuota.
+
+Il "valore zero" di un interfaccia è `nil`
+
+```go
+type any interface{}	// dichiarazione nuovo tipo con tipo sottostante interfaccia vuota 
+
+func main() {
+    var a any	// dichiarazione variabile di tipo any (alias di interfaccia vuota)
+	fmt.Printf("tipo: %T, valore: %v\n", a, a)	// stampa: tipo: <nil>, valore: <nil>
+    
+    var a2 interface{} // altra dichiarazione interfaccia vuota
+    fmt.Printf("tipo: %T, valore: %v\n", a2, a2)	// stampa: tipo: <nil>, valore: <nil>
+    
+    a2 = true
+    fmt.Printf("tipo: %T, valore: %v\n", a2, a2)	// stampa: tipo: bool, valore: true
+    
+    a2 = 12
+    fmt.Printf("tipo: %T, valore: %v\n", a2, a2)	// stampa: tipo: int, valore: 12
+    
+    a2 = "hello"
+    fmt.Printf("tipo: %T, valore: %v\n", a2, a2)	//stampa: tipo: string, valore: hello 
+}
+```
+
+#### Valori interfaccia
+
+Concettualmente un valore di un tipo interfaccia è composto da due componenti (una tupla): un tipo concreto e un valore di quel tipo.
+
+```go
+(value, type)
+```
+
+Un valore interfaccia contiene un valore del suo tipo concreto sottostante. 
+
+**Chiamare un metodo su un valore interfaccia esegue il metodo con lo stesso nome del suo tipo sottostante**.
+
+Se il valore concreto all'interno dell'interfaccia stessa è pari a zero, il metodo verrà chiamato con un *receiver* `nil`. Ciò non produce un errore (tipico null pointer exception in altri linguaggi). 
+
+Si noti che un valore interfaccia che contiene un valore concreto `nil` è essa stessa non-nulla.
+
+Un valore nullo di tipo interfaccia non ha nè valore nè tipo. Chiamare un metodo su di un'interfaccia `nil` produce un errore a run time in quanto non è presente alcun tipo all'interno della tupla dell'interfaccia per indicare quale metodo concreto chiamare
+
+#### Type Assertions
+
+Un' asserzione di tipo fornisce l'accesso al valore concreto sottostante il valore dell'interfaccia. È una sort di type checking.
+
+```go
+t := i.(T)
+```
+
+Questo statement asserisce che il valore `i ` dell'interfaccia contiene il tipo concreto `T` e assegna il valore `T`sottostante alla variabile `t` .
+
+Se `i` non contiene un valore di tipo `T`, lo statement lancerà un *panic* (un error a run time).
+
+Per *verificare* se il valore di un'interfaccia contiene un tipo specifico, un *type assertion* può ritornare 2 valori:
+
+- il tipo sottostante 
+- un valore booleano che indica se il valore di quel tipo è presente o meno
+
+```go
+t, ok := i.(T)
+```
+
+Se  i contiene un `T`, allora `t `sarà il valore sottostante e `ok` sarà `true`. Altrimenti, `ok` sarà falso e `t` sarà `0` e non occorrerà alcun *panic*. (nota la somiglianza con lo statement *comm ok* delle `map`).
+
+
+
+#### 
