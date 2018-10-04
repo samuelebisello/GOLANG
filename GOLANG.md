@@ -25,9 +25,12 @@ User defined type -> bisogna fare una scelta: se non si è sicuri su cosa scegli
 
 ### Decoupling
 
-Livelli di design di una api che si dovrebbero fare
+Livelli di design di una API (si dovrebbe fare in questo modo)
 
 ![livelli API](https://github.com/samuelebisello/GOLANG/raw/master/images/decoupling.png)
+
+
+
 
 
 ### Valori zero
@@ -981,7 +984,7 @@ type Person struct {
 I campi di una `struct` sono accessibili attraverso l'operatore `.` dot. I campi di una `struct` possono anche essere acceduti attraverso un puntatore alla `struct`. 
 Per fare ciò si dovrebbe prima dereferenziare il puntatore e poi accedere al campo della struttura `(*p).X`. Tuttavia il linguaggio permette di scrivere direttamente `p.X` senza dereferenziare esplicitamente.
 
-Un `struct` di tipo `S` non può contenere un valore di tipo `S`, ma può dichiarare un field puntatore a `S`.
+Un `struct` di tipo `s` non può contenere un valore di tipo `s`, ma può dichiarare un field puntatore a `S`.
 
 Il "valore zero" di una `struct` è composto dal valore zero di ognuno dei suoi fields.
 
@@ -1511,4 +1514,69 @@ Se  i contiene un `T`, allora `t `sarà il valore sottostante e `ok` sarà `true
 
 
 
-#### 
+### Interface and Composition Design
+
+- Interfaces give programs structure.
+- Interfaces encourage design by composition.
+- Interfaces enable and enforce clean divisions between components.
+  - The standardization of interfaces can set clear and consistent expectations.
+- Decoupling means reducing the dependencies between components and the types they use.
+  - This leads to correctness, quality and performance.
+- Interfaces allow you to group concrete types by what they do.
+  - Don't group types by a common DNA but by a common behavior.
+  - Everyone can work together when we focus on what we do and not who we are.
+- Interfaces help your code decouple itself from change.
+  - You must do your best to understand what could change and use interfaces to decouple.
+  - Interfaces with more than one method have more than one reason to change.
+  - Uncertainty about change is not a license to guess but a directive to STOP and learn more.
+- You must distinguish between code that:
+  - defends against fraud vs protects against accidents
+
+
+
+### Gestione degli errori
+
+```go
+// http://golang.org/pkg/builtin/#error
+type error interface {
+	Error() string
+}
+
+// http://golang.org/src/pkg/errors/errors.go
+type errorString struct {
+	s string
+}
+
+// http://golang.org/src/pkg/errors/errors.go
+func (e *errorString) Error() string {
+	return e.s
+}
+
+// http://golang.org/src/pkg/errors/errors.go
+// New returns an error that formats as the given text.
+func New(text string) error {
+	return &errorString{text}
+}
+
+func main() {
+    
+    if err := webCall(); err != nil {
+        fmt.Println(err)
+        return
+    }
+    
+     if err := webCall(); err != nil {
+        fmt.Println(err)
+        return
+    }
+     
+    // codice da eseguire se non ci sono stati errori
+    fmt.Println("Life is good")
+}
+
+func webCall() error {
+    return New("Bad Request")
+}
+```
+
+Non usare `else` per inseririe codice da eseguire se non c'è stato un errore. Rende il codice più complciato da leggere.
