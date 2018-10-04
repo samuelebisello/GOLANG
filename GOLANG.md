@@ -1,5 +1,51 @@
 # GOLANG 
 
+### Tipi in Go
+
+In Go ci sono 3 classi di tipi con cui possiamo avere a che fare:
+
+- i tipi di base (**built-in type**): *strings, numerics* e *boolean*
+
+- i tipi riferimento (**reference type**): *slices, maps, channles, interface values* e funzioni
+
+- i tipi definiti dall'utente (**user defined type**): *struct*
+
+
+Dealing with Builtin type -> value semantic sempre (x qualsiasi cosa, anche filed in struct)
+
+Referece type -> value semantic sempre, eccetto per "decoding" e "unmarshalling"
+
+User defined type -> bisogna fare una scelta: se non si è sicuri su cosa scegliere, meglio usare pointer semantic. 
+
+#### Linee guida nella dichiarazione di tipi
+
+- dichiara tipi che rappresentano qualcosa di nuovo o unico
+- convalidare che un valore di qualsiasi tipo venga creato o utilizzato da solo
+- Integra tipi per riusare comportamenti che hai bisogno di soddisfare, non per stato
+
+### Decoupling
+
+Livelli di design di una api che si dovrebbero fare
+
+![livelli API](https://github.com/samuelebisello/GOLANG/raw/master/decoupling.png)
+
+
+### Valori zero
+
+Variabili dichiarate senza un inizializzatore esplicito sono automaticamente inizializzate con il proprio "valore zero", il quale è :
+
+​	`0` per i tipi numerici	
+
+​	`false` per il tipo booleano
+
+​	`""` stringa vuota per le stringhe
+
+​	`nil` per interfacce e tipi riferimento cioè *slice, pointers, map, channel, function*
+
+Il valore zero di un tipo aggregato come  *array e struct* ha il valore zero di tutti i suoi elementi o campi.
+
+> **NB**: Il meccanismo "zero values" garantisce che una variabile contenga sempre un valore ben definito del suo tipo.
+
 ### Best practices
 
 - Non usare mai la **pointer semantic** per la costruzione (riga 16 ). Usare **value semantic** (riga 7)
@@ -140,22 +186,6 @@ f := 3.142  	  	// float64
 g := 0.867 + 0.5i	// complex128
 ```
 
-### Valori zero
-
-Variabili dichiarate senza un inizializzatore esplicito sono automaticamente inizializzate con il proprio "valore zero", il quale è :
-
-​	`0` per i tipi numerici	
-
-​	`false` per il tipo booleano
-
-​	`""` stringa vuota per le stringhe
-
-​	`nil` per interfacce e tipi riferimento cioè *slice, pointers, map, channel, function*
-
-Il valore zero di un tipo aggregato come  *array e struct* ha il valore zero di tutti i suoi elementi o campi.
-
-> **NB**: Il meccanismo "zero values" garantisce che una variabile contenga sempre un valore ben definito del suo tipo.
-
 ### Tipi base
 
 I tipi di base del linguaggio GO sono
@@ -209,7 +239,31 @@ Le conversione sono permesse anche tra:
 
 ### Stringhe
 
-#### **Intro**
+#### da sistemare ///
+
+```go
+// literal string, 18 bytes -> array di len == 18
+s := "世界 means world"	
+// 世界 3 bytes per ideogramma, 6 totale
+
+// UTFMax è un array di 4 bytes
+var buff [utf8.UTFMax]byte 
+
+for i, v := range s {
+    ...
+}
+
+```
+
+Quanto facciamo un `range` su una stringa, possiamo iterare e avere una copia di:
+
+- ogni byte
+- ogni code point
+- ogni carattere
+
+**end ///**
+
+------
 
 Per riferirsi ai caratteri in modo non ambiguo, ogni carattere è associato ad un numero, chiamato **code point**. I caratteri sono salvati nel computer come uno o più bytes. 
 
@@ -449,7 +503,7 @@ Per ogni iterazione, i valori di iterazione sono prodotti seguendo le rispettive
 
 ***Range value semantic*** 
 
-Viene fatta una copia dell'array `arr` e `v` rappresenta il valore (2 word, una ptr ad array, una numero byte 
+Viene fatta una copia dell'array `arr` e `v` rappresenta il valore (2 word, una ptr ad array, una indica numero di byte dell'array. L'iterazione viene fatta sul numero di elementi dell'array sottostante.
 
 ```go
 arr := [2]string{"samuele", "luca"
@@ -462,7 +516,7 @@ for i, v := range arr { // viene fatta una copia di range.
 
 ***Range pointer semantic***
 
-Non viene fatta alcuna copia dell'array. Più efficiente.
+Non viene fatta alcuna copia dell'array. L'iterazione viene fatta sul numero di elementi dell'array sottostante.
 
 ```go
 arr := [2]string{"samuele", "luca"}
@@ -740,7 +794,7 @@ fmt.Println(arr1 == arr2)	// stampa: true
 
 ### Slices types
 
-Uno slice rappresenta una **sequenza variabile** i cui elementi hanno tutti lo stesso tipo (array dinamici). 
+Uno slice rappresenta una **sequenza variabile** i cui elementi hanno tutti lo stesso tipo (array dinamici). È un tipo reference.
 
 Il tipo slice è scritto `[]T` e contiene elementi di tipo `T`. È come la dichiarazione di un array ma senza size.
 
@@ -768,6 +822,8 @@ Più slice possono condividere lo stesso array sottostante e possono riferirsi a
 
 Uno slice di slice è formato specificando 2 indici, un limite inferiore ed uno superiore, separati dal''operatore di slice `:` .
 
+In questo caso il puntatore punterà non più al primo elemento corrispondente all'elemento di indice zero dell'array sottostante, ma a quello indicato prima dei `:` .
+
 ```go
 s := [7]int{1, 2, 3, 4, 5, 6, 7} // dichiarazione array inizializzato con array letterale
 
@@ -776,7 +832,7 @@ s2 := s[3:5]	// len == 2, capacity == 4, array sottostante == s
 
 ```
 
-Con l'operatore di slice viene selezionato un intervallo semiaperto che include il primo elemento ma esclude l'ultimo. La seguente espressione crea uno slice che include gli elementi dall'indice 1 al 2.
+Perociò con l'operatore di slice viene selezionato un intervallo semiaperto che include il primo elemento dell'array di supporto ma esclude l'ultimo. L'espressione in riga 2 crea uno slice di slice che include gli elementi dall'indice 1 al 2 dell'array di supporto sottostante.
 
 ```go
 a := [3]string{"stone", "scissor", "paper"}	// creazione array
@@ -789,6 +845,14 @@ s := a[1:3]
 a[:]	// slice contente tutti gli elemnti dell'array a
 a[3:]	// slice da elemento di indice 3 di a fino all'ultimo
 a[:4]	// slice dal primo elemento di a fino al 4 (indice 3)
+```
+
+Un modo più semplice per fare slice di slice è il seguente (riga 3)
+
+```go
+sli := []string{"sam", "luke", "john", "jack"}
+i := 1
+sli2 := sli[i:i+2] // piu semplice, parto da 'i' index e seleziono 2 elem
 ```
 
 Fare slicing oltre la capacità dell'array sottostante causa un `panic`, mentre lo slicing oltre la lunghezza dell'array sottostante estende lo slice così che il risultato può essere più grande dell'originale.
@@ -1048,6 +1112,10 @@ w.X = 8	// accedo direttamente al field X di Point
 
 ```
 
+**Possiamo chiamare questo accesso diretto "promotion" in quanto dicimao che il tipo interno (integrato) viene promosso al tipo esterno**.
+
+**NB**: ==Se un tipo integrato (inner) soddisfa/implementa una certa interfaccia, grazie allìembedding (promotion) anche il tipo esterno soddisfa tale interfaccia.Se anche l'outer type implementa la stessa interfaccia allora sovrascrive l'implementazione dell'inner type.==
+
 Poichè i *fields anonimi* hanno nomi impliciti, non è possibile avere due fields anonimi dello stesso tipo, in quanto si incorre in un conflitto di nomi. Per ovviare il problema basta assegnare un nome alla `struct` integrata dovendo però fornire il "path completo" per accedere ai campi della `struct` integrata.
 
 Per costruire una `struct` letterale contenente che contiene una `struct` integrata si usa la seguente sintassi.
@@ -1234,6 +1302,12 @@ fmt.Println(f(values...))
 
 ### Metodi
 
+Disaccopiamento - Comportamento
+
+
+
+------
+
 Un metodo è dichiarato con una variante rispetto alla ordinaria dichiarazione di funzione nel quale compare un parametro extra racchiuso tra parentesi tonde prima del nome della funzione. 
 
 **Il parametro extra è chiamato *receiver*. Il parametro receiver collega la funzione al tipo di quel parametro.**
@@ -1256,10 +1330,12 @@ In Go è possibile associare metodi ad ogni tipo, tipi base compreso
 Il receiver di un metodo può essere anche di tipo puntatore. Questo significa che i metodi con receiver di tipo puntatore possono modificare il valore a cui puntano. Cosa non possibile dichiarando un receiver come tipo non puntatore.
 
 ```go
+// value receiver
 func (p *person) setName(name string) {
     p.name = name	// side effect su p
 }
 
+// pointer receiver
 func (p person) setname(name string) {
     p.name = name	// nessun side effect, p è una copia
 }
@@ -1308,7 +1384,7 @@ Quando un tipo `T` implementa un'interfaccia `I` (implementando i suoi metodi) a
 Valgono le seguenti regole:
 
 - Tuttavia quando  `T`  implementa un metodo `m` dell'interfaccia `I`, se il *receiver* di `m` ha tipo `T` , il metodo viene aggiunto al **method set** di `T `e di `*T`;
-- Se inece il *receiver* di `m` ha tipo `*T`, il metodo viene aggiunto solo al **method set** di `*T`
+- Se invece il *receiver* di `m` ha tipo `*T`, il metodo viene aggiunto solo al **method set** di `*T`
 
 ```go
 /* Receivers		Values */
