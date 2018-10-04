@@ -1,4 +1,36 @@
-# GOLANG
+# GOLANG 
+
+### Best practices
+
+- Non usare mai la **pointer semantic** per la costruzione (riga 16 ). Usare **value semantic** (riga 7)
+
+```go
+type user struct {
+    name string
+    email string
+}
+
+func f1() *user {
+    u := user{
+        name: "samuele",
+        email: "sam@gmail.com",
+    }
+    
+    return &u // codice significativo. Ci dice che stiamo allocando sullo heap
+}
+
+func f2() *user {
+    u := &user{
+        name: "samuele",
+        email: "sam@gmail.com",
+    }
+    
+    return u // non esprime nulla. codice poco leggibile. Devo cercare in giro per il
+    		 // codice
+}
+```
+
+
 
 ### Visibilità (Exported - Unexported)
 
@@ -7,7 +39,12 @@ Quando si importa un package, ci si può solo riferire a i nomi "exported" (pubb
 
 ### Variabili
 
-La dichiarazione `var` crea una variabile di un determinato tipo, le assegna un nome ed un valore iniziale.
+La dichiarazione `var` :
+
+- crea una **valore** di un **determinato tipo**,
+- le assegna un nome 
+- le assegna un valore iniziale
+
 Ogni dichiarazione ha la seguente forma.
 
 ```go
@@ -66,7 +103,7 @@ Il tempo di vita di una variabile a livello di package è **l'intera esecuzione 
 
 Una variabile locale invece ha un tempo di vita dinamico: una nuova istanza è creata ogni qual volta lo statement di dichiarazione viene eseguito, e **la variabile vive fino a che non diventa irragiungibile**. 
 
-Uno degli effeti di questa caratteristica in Go sono le *closures*.„
+Uno degli effeti di questa caratteristica in Go sono le *closures*
 
 ### Dichiarazione di Tipo
 
@@ -189,6 +226,22 @@ Una *stringa* può essere convertita in uno *slice di byte* e viceversa.
 ------
 
 **Le stringhe sono interpretate come sequenze codificate in UTF-8 di Unicode code points (runes).**
+
+Una stringa è composta da due *word*. Una word ha dimensione relativa all'architettura del pc su cui stiamo scirvendo ed eseguendo il nostro programma. Se abbiamo un architettura a 64-bit, avremo parole di 8 bytes, se 32-bit di 4 bytes.
+
+
+
+![Rappresentazione di una stringa in go](https://github.com/samuelebisello/GOLANG/blob/master/images/slice.png/stringInGo.png)
+
+​							
+
+​								*Rappresentazione di una stringa in go*
+
+Una word contiene il puntatore ad un array di byte di supporto contente i carattere della stringa. L'altra contiene il `numero di byte presente` nell'array di supporto puntato da `ptr`
+
+
+
+
 
 La funzione `len` del pkg `builtin` restituisce il # di bytes (non runes) in una stringa, e l'operazione di indicizzazione `str[i]` restituisce l'i-esimo byte della stringa.
 
@@ -393,6 +446,34 @@ Per ogni iterazione, i valori di iterazione sono prodotti seguendo le rispettive
 | String           | s string           | Index i int  | s[i] rune  |
 | map              | m map[K]V          | Key k K      | m[k] V     |
 | Channel          | c chan E, <-chan   | elemento e E |            |
+
+***Range value semantic*** 
+
+Viene fatta una copia dell'array `arr` e `v` rappresenta il valore (2 word, una ptr ad array, una numero byte 
+
+```go
+arr := [2]string{"samuele", "luca"
+                 
+for i, v := range arr { // viene fatta una copia di range. 
+    arr[1] = "gino"
+	fmt.Println(v) // stampa samuele luca 
+}
+```
+
+***Range pointer semantic***
+
+Non viene fatta alcuna copia dell'array. Più efficiente.
+
+```go
+arr := [2]string{"samuele", "luca"}
+
+for i := range arr { // viene fatta una copia di range. 
+    arr[1] = "gino"
+	fmt.Println(arr[i]) // stampa samuele gino 
+}
+```
+
+
 
 ### Blank Identifier
 
@@ -667,15 +748,25 @@ Array e slice sono connessi. Uno slice è una struttura dati leggera che consent
 
 Uno slice ha 3 componenti:
 
-- **puntatore**: punta al primo elemento dell'array che è raggiungibile attraverso lo slice
-- **lunghezza**: è il numero degli elementimenti dello slice. Non può eccedere la capacità
-- **capacità**: è il numero di elementi compresi tra l'inizio dello slice e la fine dell'array sottostante
+- **puntatore**: punta al primo elemento dell'array di supporto che è raggiungibile attraverso lo slice
+- **lunghezza**: è il numero degli elementi dell'array di supporto ai quali è possibile accedere attraverso il puntatore. Non può eccedere la capacità
+- **capacità**: è il numero totale di elementi che esistono nell'array di supporto da dove punta il puntatore fino alla fine dell'array. La capacità può essere maggiore della lunghezza ma non viceversa 
 
 ![slice](https://github.com/samuelebisello/GOLANG/blob/master/images/slice.png)
 
+L'espressione che inizializza uno slice è differente da quella che inizializza un array. Uno slice letterale è come un array letterale ma la size è omessa. Questo implicitamente crea una array della size corretta (ossia del # di elementi presenti nelle parentesi graffe) e genera uno slice che punta all'array.
+
+```go
+s := []int{1, 2, 3, 4, 5, 6, 7}	// dichiarazione slice iniziallizzato con slice letterale
+```
+
+ Il "valore zero" di uno tipo `slice` è `nil` .
+
 Più slice possono condividere lo stesso array sottostante e possono riferirsi a parti sovrapposte di quel array (figura sopra e codice sotto).
 
-Uno slice è formato specificando 2 indici, un limite inferiore ed uno superiore, separati dal''operatore di slice `:` .
+#### **slice di slice**
+
+Uno slice di slice è formato specificando 2 indici, un limite inferiore ed uno superiore, separati dal''operatore di slice `:` .
 
 ```go
 s := [7]int{1, 2, 3, 4, 5, 6, 7} // dichiarazione array inizializzato con array letterale
@@ -713,13 +804,12 @@ newer := original[:5]		// ok
 
 > **NB:** Dal momento che uno slice contiene un puntatore all'elemento di un array, passando uno slice ad una funzione è possibile modificare gli elementi dell'array sottostante.
 
-L'espressione che inizializza uno slice è differente da quella che inizializza un array. Uno slice letterale è come un array letterale ma la size è omessa. Questo implicitamente crea una array della size corretta (ossia del # di elementi presenti nelle parentesi graffe) e genera uno slice che punta all'array.
+Per i tipi reference `slice` , quando vengono passati per valore (**value semantic**), per esempio ad una funzione, viene fatta una copia del valore, ossia delle tre words`(ptr *[]type, len, cap)`.
+L'array sottostante  è allocato nello heap, quindi la copia ha un costo di sole 3 words ed è corretto lavorare per valore.
 
-```go
-s := []int{1, 2, 3, 4, 5, 6, 7}	// dichiarazione slice iniziallizzato con slice letterale
-```
+Non è corretto condividere slice tramite puntatore. Solo per valore. I valori di uno slice sono progettati per essere usati nello stack.
 
- Il "valore zero" di uno tipo `slice` è `nil` .
+**Memory leak in go**: quando si mantiene un riferimento a qualcosa allocato nello heap, in quanto non verrà deallocato dal GC.
 
 A differenza di un array, uno slice non è comparabile. Dunque non è possibile usare l'operatore `==` per verificare se due slice contengono lo stesso numero di elementi. L'unica comparazione di slice legale è con `nil` . 
 
@@ -813,7 +903,9 @@ Come per le `slice`, una `map` non può essere confrontata con un'altra `map` . 
 
 ### Structs types
 
-Una `struct` è un tipo di dato aggregato che raggruppa 0 o più valori di qualsiasi tipo vedendoli come singole entità. Ogni valore è chiamato field (campo). 
+Per ottimizzre l'uso della memoria, e non "sprecare" byte di padding, si deveono inserire i fileds di una strcut dal piu grande al piu piccolo (dall'altro verso il basso).
+
+Una `struct` è un tipo di dato aggregato che raggruppa 0 o più **valori** di qualsiasi tipo vedendoli come singole entità. Ogni valore è chiamato field (campo). 
 
 ```go
 type Person struct {
@@ -827,9 +919,17 @@ Per fare ciò si dovrebbe prima dereferenziare il puntatore e poi accedere al ca
 
 Un `struct` di tipo `S` non può contenere un valore di tipo `S`, ma può dichiarare un field puntatore a `S`.
 
-Il "valore zero" di una `struct    `è composto dal valore zero di ognuno dei suoi fields.
+Il "valore zero" di una `struct` è composto dal valore zero di ognuno dei suoi fields.
 
 I fields di solito sono scritti uno per riga, con il nome che precede il tipo (vedi sopra). Campi consecutivi con lo stesso tipo possono essere combinati.
+
+Se voglio creare una variabile con tipo `type` con tipo sottostante `struct` e con il suo valore zero è buona norma usare `var name type` e non `name := type{}`
+
+```go
+var sam person	// soluzione migiliore
+
+sam := person{}
+```
 
 ```go
 type Person struct {
@@ -838,21 +938,21 @@ type Person struct {
 }
 ```
 
-> **NB**: il nome di un field di una `struc` è "exported" se comincia con la lettera maiuscola.
-
-Il tipo `struct` senza fields è chiamato *empty struct* e si dichiara con `struct{}`. Ha size pari a zero.
+Il tipo `struct` senza fields è chiamato *empty struct* e si dichiara con `struct{}`. Ha size pari a zero. 
 
 ```go
-var s struct {}
+var s struct {} 
 
 // forma equivalente
 
-s := struct{}{} 
+s := struct{}{}  // dichiarazione struct {}, inizializzazione con la seconda {}
 ```
+
+> **NB**: il nome di un field di una `struc` è "exported" se comincia con la lettera maiuscola.
 
 #### Struct Literals
 
-Una `struct` letterale rappresetna una nuova struttura allocata, nella quale vengono elencati i valori dei suoi campi. Ci sono 2 forme per una struttura letterale	
+Una `struct` letterale rappresenta una nuova struttura allocata, nella quale vengono elencati i valori dei suoi campi. Ci sono 2 forme per una struttura letterale	
 
 1. La prima richiede che i valori siano specificati per *ogni* campo, nel giusto ordine.
 
@@ -880,7 +980,16 @@ p := &Person {
 } 
 ```
 
-Se tutti i campi di una `struct` sono confrontabili, la `struct` stessa è confrontabile. Di conseguenza due `struct` dello stesso tipo possono essere comparate usando gli operatori `==` e `!=` . L'operatore `==` confronta i fields corrispondenti delle due strutture in ordine.
+Se tutti i campi di una `struct` sono confrontabili, la `struct` stessa è confrontabile. Di conseguenza due `struct` dello **stesso tipo** possono essere comparate usando gli operatori `==` e `!=` . L'operatore `==` confronta i fields corrispondenti delle due strutture in ordine.
+
+Si parla di `struct` anonima se non viene dichiarato un tipo con valore sottastante di tipo `struct`.
+
+```go
+var s struct {	// struct anonima 
+    filed1 string
+    field2 int
+}
+```
 
 In Go esiste un meccanismo chiamato **struct embedding** che consente di usare il nome di un tipo `struct` come *anonymous filed* di un altro tipo `struct`, fornendo un sintassi abbreviata che semplifica la "dot expression" per accedere ai campi della `struct`. 
 
@@ -974,7 +1083,7 @@ In questo caso la `struct Address` assume lo stesso nome del tipo.
 ### Le funzioni new e make
 
 Go ha due primitive di allocazione, le funzioni `make` e `new` del pk `builtin`.
-La funzione `new(Type) *Type` alloca memoria ma non la inizializza, la "mette" al valore zero del tipo `Type`.  Nella terminologia di Go, si dice che la funzione`new(T)` ritorna un puntatore al "valore zero" appena allocato di tipo `T` .
+La funzione `new(Type) *Type` e la "mette" al valore zero del tipo `Type`.  Nella terminologia di Go, si dice che la funzione`new(T)` ritorna un puntatore al "valore zero" appena allocato di tipo `T` .
 
 La funzione  `new` si puà utilizzare per tutti i tipi tranne che per i tipi reference come `map`, `slice` e  `channel` per i quali si usa la funzione `make`.
 
@@ -1065,7 +1174,7 @@ f := func() string {
 
 fmt.Println(f())	// stampa : hello
 
-// funziona anonima dichiarata e chiamata
+// funziona anonima dichiarata e chiamata 
 func() int {
     return 1
 }() 
