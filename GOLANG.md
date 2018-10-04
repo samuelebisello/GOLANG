@@ -231,7 +231,7 @@ Una stringa è composta da due *word*. Una word ha dimensione relativa all'archi
 
 
 
-![Rappresentazione di una stringa in go](https://github.com/samuelebisello/GOLANG/blob/master/images/slice.png/stringInGo.png)
+![Rappresentazione di una stringa in go](https://github.com/samuelebisello/GOLANG/raw/master/images/stringInGo.png)
 
 ​							
 
@@ -752,7 +752,7 @@ Uno slice ha 3 componenti:
 - **lunghezza**: è il numero degli elementi dell'array di supporto ai quali è possibile accedere attraverso il puntatore. Non può eccedere la capacità
 - **capacità**: è il numero totale di elementi che esistono nell'array di supporto da dove punta il puntatore fino alla fine dell'array. La capacità può essere maggiore della lunghezza ma non viceversa 
 
-![slice](https://github.com/samuelebisello/GOLANG/blob/master/images/slice.png)
+![slice](https://github.com/samuelebisello/GOLANG/raw/master/images/slice.png)
 
 L'espressione che inizializza uno slice è differente da quella che inizializza un array. Uno slice letterale è come un array letterale ma la size è omessa. Questo implicitamente crea una array della size corretta (ossia del # di elementi presenti nelle parentesi graffe) e genera uno slice che punta all'array.
 
