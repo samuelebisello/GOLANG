@@ -27,7 +27,7 @@ User defined type -> bisogna fare una scelta: se non si è sicuri su cosa scegli
 
 Livelli di design di una api che si dovrebbero fare
 
-![livelli API](https://github.com/samuelebisello/GOLANG/raw/master/decoupling.png)
+![livelli API](https://github.com/samuelebisello/GOLANG/raw/master/images/decoupling.png)
 
 
 ### Valori zero
