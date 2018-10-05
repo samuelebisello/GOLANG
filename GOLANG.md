@@ -11,7 +11,7 @@ In Go ci sono 3 classi di tipi con cui possiamo avere a che fare:
 - i tipi definiti dall'utente (**user defined type**): *struct*
 
 
-Dealing with Builtin type -> value semantic sempre (x qualsiasi cosa, anche filed in struct)
+Builtin type -> value semantic sempre (x qualsiasi cosa, anche filed in struct)
 
 Referece type -> value semantic sempre, eccetto per "decoding" e "unmarshalling"
 
@@ -28,8 +28,6 @@ User defined type -> bisogna fare una scelta: se non si è sicuri su cosa scegli
 Livelli di design di una API (si dovrebbe fare in questo modo)
 
 ![livelli API](https://github.com/samuelebisello/GOLANG/raw/master/images/decoupling.png)
-
-
 
 
 
@@ -1514,7 +1512,33 @@ Se  i contiene un `T`, allora `t `sarà il valore sottostante e `ok` sarà `true
 
 
 
-### Interface and Composition Design
+## Packages
+
+### La funzione init()**
+
+Ogni file sorgente può definire la funzione `init` per impostare qualunque stato sia richiesto. (In realtà ogni file può avere più *funzioni init*). La funzione `init` viene invocata **dopo** che tutte le dichiarazioni di variabili nel package hanno valutato i loro inizializzatori e sono valutate solo dopo che tutti i packages importati sono stati inizializzati.
+
+Oltre alle inizializzazioni che non possono essere espresse come dichiarazioni, un uso comune delle funzioni di init è verificare o correggere la correttezza dello stato del programma prima che inizi l'esecuzione reale.
+
+```go
+func init() {
+    if user == "" {
+        log.Fatal("$USER not set")
+    }
+    if home == "" {
+        home = "/home/" + user
+    }
+    if gopath == "" {
+        gopath = home + "/go"
+    }
+    // gopath may be overridden by --gopath flag on command line.
+    flag.StringVar(&gopath, "gopath", gopath, "override default GOPATH")
+}
+```
+
+
+
+## Interface and Composition Design
 
 - Interfaces give programs structure.
 - Interfaces encourage design by composition.
@@ -1534,7 +1558,7 @@ Se  i contiene un `T`, allora `t `sarà il valore sottostante e `ok` sarà `true
 
 
 
-### Gestione degli errori
+## Gestione degli errori
 
 ```go
 // http://golang.org/pkg/builtin/#error
@@ -1580,3 +1604,244 @@ func webCall() error {
 ```
 
 Non usare `else` per inseririe codice da eseguire se non c'è stato un errore. Rende il codice più complciato da leggere.
+
+### Error Variables
+
+```go
+// Sample program to show how to use error variables to help the
+// caller determine the exact error being returned.
+package main
+
+import (
+	"errors"
+	"fmt"
+)
+
+var (
+	// ErrBadRequest is returned when there are problems with the request.
+	ErrBadRequest = errors.New("Bad Request")
+
+	// ErrPageMoved is returned when a 301/302 is returned.
+	ErrPageMoved = errors.New("Page Moved")
+)
+
+func main() {
+	if err := webCall(true); err != nil {
+		switch err {
+		case ErrBadRequest:
+			fmt.Println("Bad Request Occurred")
+			return
+
+		case ErrPageMoved:
+			fmt.Println("The Page moved")
+			return
+
+		default:
+			fmt.Println(err)
+			return
+		}
+	}
+
+	fmt.Println("Life is good")
+}
+
+// webCall performs a web operation.
+func webCall(b bool) error {
+	if b {
+		return ErrBadRequest
+	}
+
+	return ErrPageMoved
+```
+
+
+
+## Concurrency
+
+**Goroutine**: is an independent path of execution
+
+**weight group**: is a synchronous counting semaphore
+
+```go
+// Sample program to show how to create goroutines and
+// how the scheduler behaves.
+package main
+
+import (
+	"fmt"
+	"runtime"
+	"sync"
+)
+
+func init() {
+
+	// Allocate one logical processor for the scheduler to use.
+	runtime.GOMAXPROCS(1)
+}
+
+func main() {
+
+	// wg is used to manage concurrency.
+	var wg sync.WaitGroup
+	wg.Add(2)
+
+	fmt.Println("Start Goroutines")
+
+	// Create a goroutine from the lowercase function.
+	go func() {
+		lowercase()
+		wg.Done()
+	}()
+
+	// Create a goroutine from the uppercase function.
+	go func() {
+		uppercase()
+		wg.Done()
+	}()
+
+	// Wait for the goroutines to finish.
+	fmt.Println("Waiting To Finish")
+	wg.Wait()
+
+	fmt.Println("\nTerminating Program")
+}
+
+// lowercase displays the set of lowercase letters three times.
+func lowercase() {
+
+	// Display the alphabet three times
+	for count := 0; count < 3; count++ {
+		for r := 'a'; r <= 'z'; r++ {
+			fmt.Printf("%c ", r)
+		}
+	}
+}
+
+// uppercase displays the set of uppercase letters three times.
+func uppercase() {
+
+	// Display the alphabet three times
+	for count := 0; count < 3; count++ {
+		for r := 'A'; r <= 'Z'; r++ {
+			fmt.Printf("%c ", r)
+		}
+	}
+}
+```
+
+### Data Races
+
+Quando 2 o più threads/Goroutines (o percorsi di esecuzione) accedono alla stessa zona memoria, allo stesso istante dove uno sta facendo una lettura e l'altro sta facendo una scrittura (o anche entrambi una scrittura). La sincronizzazione serve per evitare situazione di race conditions.
+
+Sincronizzazione: ci sono 2 scelte. Si possono usare sia **instruzioni atomiche** sia **mutex**. Le istruzioni atomiche sonola strada più rapida da percorre in quanto sono a livello hardware. L'hardware si occupa della sincronizzazione, ma sono limitate a solo 4 o 8 bytes di memoria (ottime per variabili quali contatori ecc).
+
+Quando si hanno molte linee di codice che devono essere sincronizzate in modo atomico, allora si usano i *mutex*.
+
+#### Sincronizzazione con funzioni atomiche
+
+```go
+// Sample program to show how to use the atomic package to
+// provide safe access to numeric types.
+package main
+
+import (
+	"fmt"
+	"sync"
+	"sync/atomic"
+)
+
+// counter is a variable incremented by all goroutines.
+var counter int64
+
+func main() {
+
+	// Number of goroutines to use.
+	const grs = 2
+
+	// wg is used to manage concurrency.
+	var wg sync.WaitGroup
+	wg.Add(grs)
+
+	// Create two goroutines.
+	for i := 0; i < grs; i++ {
+		go func() {
+			for count := 0; count < 2; count++ {
+				atomic.AddInt64(&counter, 1)
+			}
+
+			wg.Done()
+		}()
+	}
+
+	// Wait for the goroutines to finish.
+	wg.Wait()
+
+	// Display the final value.
+	fmt.Println("Final Counter:", counter)
+}
+```
+
+#### Sincronizzazione con Mutex
+
+I mutex sono utili per gestire la mutua esclusione di alcune risorse condivise o pezzi di codice. Un *mutex* può trovarsi i n 2 stati: *locked* o *unlocked*. Quando si acquisisce il lock bisogna ricordarsi SEMPRE di fare l'unlock all'interno della stessa funzione, altrimenti si ha dedlock.
+
+Quando si acquisisce il lock è come se si creasse una stanza nella quale un solo thread può accedere, mentre gli altri rimangono bloccati all'esterno.
+
+![Mutex](https://github.com/samuelebisello/GOLANG/raw/master/images/mutex.jpg)
+
+```go
+// Sample program to show how to use a mutex to define critical
+// sections of code that need synchronous access.
+package main
+
+import (
+	"fmt"
+	"sync"
+)
+
+// counter is a variable incremented by all goroutines.
+var counter int
+
+// mutex is used to define a critical section of code.
+var mutex sync.Mutex
+
+func main() {
+
+	// Number of goroutines to use.
+	const grs = 2
+
+	// wg is used to manage concurrency.
+	var wg sync.WaitGroup
+	wg.Add(grs)
+
+	// Create two goroutines.
+	for i := 0; i < grs; i++ {
+		go func() {
+			for count := 0; count < 2; count++ {
+
+				// Only allow one goroutine through this critical section at a time.
+				mutex.Lock()
+				{
+					// Capture the value of counter.
+					value := counter
+
+					// Increment our local value of counter.
+					value++
+
+					// Store the value back into counter.
+					counter = value
+				}
+				mutex.Unlock()
+				// Release the lock and allow any waiting goroutine through.
+			}
+
+			wg.Done()
+		}()
+	}
+
+	// Wait for the goroutines to finish.
+	wg.Wait()
+	fmt.Printf("Final Counter: %d\n", counter)
+}
+```
+
