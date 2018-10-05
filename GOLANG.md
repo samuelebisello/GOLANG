@@ -1787,7 +1787,13 @@ I mutex sono utili per gestire la mutua esclusione di alcune risorse condivise o
 
 Quando si acquisisce il lock è come se si creasse una stanza nella quale un solo thread può accedere, mentre gli altri rimangono bloccati all'esterno.
 
-![Mutex](https://github.com/samuelebisello/GOLANG/raw/master/images/mutex.jpg)
+
+
+![Mutex](https://github.com/samuelebisello/GOLANG/raw/master/images/mutex.png)
+
+
+
+
 
 ```go
 // Sample program to show how to use a mutex to define critical
