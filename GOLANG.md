@@ -1934,8 +1934,13 @@ Un `channel ` fornisce un meccanismo per eseguire concorrentemente funzioni per 
 
 È possibile creare un nuovo valore di `channel` utilizzando la funzione `make`, la quale prende come argomenti il *tipo del channel* e la capacità (argomento opzionale). La funzione make inizializza il channel ed è **l'unico modo per inizializzare un channel**.
 
+Un channel è automaticamente **aperto** quando viene inizializzato con la funzione `make`
+
+Un channel può essere **chiuso** con la funzione `close` del pkg `builtin`. 
+
 ```go
 c := make(chan int, 100)
+close(c)
 ```
 
 Il valore di un `channel` non inizializzato è `nil`.
@@ -1949,18 +1954,18 @@ fmt.Printf("%v", c) // stampa <nil>
 
 L'operatore `<-` specifica la direzione del `channel`, ossia **send** o **receive** 
 
-I channel possono essere dichiarati per supportare solo un flusso unidirezionale di dati, ovvero, è possible definire un channel che supporta solo l'**invio** o la **ricezione** di informazioni. Per dichiarae un channel unidirezionale basta includere l'operatore `<-`.
+I channel possono essere dichiarati per supportare solo un flusso unidirezionale di dati, ovvero, è possible definire un channel che supporta solo l'**invio** o la **ricezione** di informazioni. Per dichiarare un channel unidirezionale basta includere l'operatore `<-`.
 
 Per dichiarare e istanziare un channel che può solo ricevere interi
 
 ```go
-c := make(<-chan int) // può solo essere usato per ricevere ints
+c := make(<-chan int) // può essere usato solo per ricevere ints (pull out)
 ```
 
 Per dichiarare e creare un channel che può solo inviare interi
 
 ```go
-c := make(chan<- int)
+c := make(chan<- int) // può essere usato solo per inviare ints 
 ```
 
 Per dichiarare e creare un channel che può ricevere e inviare valori di tipo T
@@ -1969,29 +1974,38 @@ Per dichiarare e creare un channel che può ricevere e inviare valori di tipo T
 c := make (chan int) // può essere usato per inviare e ricevere valori di tipo 
 ```
 
+Due forme di **channel receive**
+
+```go
+v := <-ch	// valore del channel
+v, wd := <-ch	// valore del channel + booleano
+```
+
+Nella prima forma viene ricevuto il valore del channel, nella seconda invece il primo è il valore, il secondo è un booleano (flag) che indica se ho ricevuto con successo nel channel. Se il secondo valore è false, ricevo (valore == 0) perché il channel è chiuso
+
 La capacità di un channel, intesa come numero di elementi, imposta la dimensione del buffer nel channel:
 
 - Se la capacità è pari a `0` o assente, il channel è **unbuffered** e la comunicazione ha successo solo quando sia il *sender* sia il *receiver* sono pronti.
 - Il channel è **buffered** e la comunicazione ha successo senza "bloccare" se il buffer non è pieno (send) o non vuoto (receives) 
 
-Un channel unbuffered è bloccante. quando invio (send) un valore su un channel (riga 78), lui blocca la goroutine fino a che in un altra goroutine non viene tirato fuori (pull out riga 7) e as ua volta la goroutine che tira fuori il valore rimane bloccarta fino a che non è possibile ricevere i l valore ne channel.
+Un channel *unbuffered* è bloccante. La goroutine dove è presente il *receiver* channel (main routine in questo caso) rimane bloccata fino a che nell'altra goroutine (ossia dove viene inviato il valore) viene inviato il valore. L'unico momento sincronizzato è lo **scambio** tra sender e receiver nel channel.
 
 ```go
 func main() {
 	c := make(chan int)
 	go func() {
-		c <- 8
+		c <- 8 // send
 	}()
-	fmt.Println(<-c)
+	fmt.Println(<-c) //receive
 }
 ```
 
-Il flusso nell'esempio sopra è il seguente:
+Il flusso nell'esempio sopra è il seguente (esempio di *wait for result*):
 
 - creo un unbuffered channel che riceve ed invia interi
-- creo una goroutine che esegue una funzione -> va per conto suo
--  Stampo il valore estratto dal channel ma rimango bloccato fino a che il valore non è stato inserito dalla goroutine che si occupa di inserire il valore
-- Quindi dopo aver inserito l'intero sul channel si sblocca la goroutine che ricewve il valore e posso proseguire nell'esecuzione, stampando il valore.
+- creo una goroutine che esegue una funzione che ha il suo percorso di esecuzione
+-  voglio stampare il valore estratto dal channel ma rimango bloccato nel main (goroutine principale) fino a che il valore nonviene inviato nel channel all'interno della goroutine che si occupa diinviare il valore (riga 8)
+- Dopo aver inviato il valore di tipo int sul channel viene sbloccata la goroutine che riceve il valore, ossia quella del main, e posso proseguire nell'esecuzione del programma, stampando il valore estratto dal channel.
 
 In un channel buffered invece 
 
@@ -1999,19 +2013,17 @@ In un channel buffered invece
 func main() {
 	c := make(chan int, 1)
 	c <- 32
-	fmt.Println(<-c)
+    fmt.Println(<-c)
 }
 ```
 
 posso estrarre valori fino ad un massimo rappresentato dalla capacità del buffer senza bloccare la goroutine. 
 
-Un channel può essere chiuso con la funzione `close` del pkg `builtin`. 
-
 Un singolo channel può essere utilizzato nelle istruzioni di invio (send), ricezione (receive) e nelle chiamate alle funzioni `len` e `cap` da un numero qualsiasi di goroutines senza ulteriore sincronizzazione.
 
 I canali agiscono come code *First-In-First-Out*. Per esempio se una goroutine invia valori in un channel e una seconda goroutine li riceve, i valori sono ricevuti nell'ordine con cui sono stati inviati.
 
-**Bill Kennedy**
+------
 
 I `channel` sono un modo per fare *orchestration*. Abbiamo visto un esempio di orchestration con i *wait group*. 
 
@@ -2020,7 +2032,78 @@ Quando pensiamo ad un *channel*, dobbiamo pensare a "signaling".
 
 "Channel are for signaling" (i channel servono per segnalare). L'idea è che una goroutine sta per inviare un segnale ad un altra goroutine. Si parla infatti di inviare e ricevere e non di scrivere o leggere.
 
+#### Concurrency pattern
 
+**wait for task**
 
+```go
+// waitForTask: Think about being a manager and hiring a new employee. In
+// this scenario, you want your new employee to perform a task but they need
+// to wait until you are ready. This is because you need to hand them a piece
+// of paper before they start.
+func waitForTask() {
+	ch := make(chan string)
 
+	go func() {
+		p := <-ch
+		fmt.Println("employee : recv'd signal :", p)
+	}()
+
+	time.Sleep(time.Duration(rand.Intn(500)) * time.Millisecond)
+	ch <- "paper"
+	fmt.Println("manager : sent signal")
+
+	time.Sleep(time.Second)
+	fmt.Println("-------------------------------------------------------------")
+}
+```
+
+**wait for result** - come esempio sopra sui channel
+
+```go
+// waitForResult: Think about being a manager and hiring a new employee. In
+// this scenario, you want your new employee to perform a task immediately when
+// they are hired, and you need to wait for the result of their work. You need
+// to wait because you need the paper from them before you can continue.
+func waitForResult() {
+	ch := make(chan string)
+
+	go func() {
+		time.Sleep(time.Duration(rand.Intn(500)) * time.Millisecond)
+		ch <- "paper"
+		fmt.Println("employee : sent signal")
+	}()
+
+	p := <-ch // blocca main goroutine fino a che non riceve valore da send ch
+	fmt.Println("manager : recv'd signal :", p)
+
+	time.Sleep(time.Second)
+	fmt.Println("-------------------------------------------------------------")
+}
+```
+
+**wait for finish**
+
+```go
+// waitForFinished: Think about being a manager and hiring a new employee. In
+// this scenario, you want your new employee to perform a task immediately when
+// they are hired, and you need to wait for the result of their work. You need
+// to wait because you can't move on until you know they are but you don't need
+// anything from them.
+func waitForFinished() {
+	ch := make(chan struct{})
+
+	go func() {
+		time.Sleep(time.Duration(rand.Intn(500)) * time.Millisecond)
+		close(ch)
+		fmt.Println("employee : sent signal")
+	}()
+
+	_, wd := <-ch // blocking
+	fmt.Println("manager : recv'd signal :", wd)
+
+	time.Sleep(time.Second)
+	fmt.Println("-------------------------------------------------------------")
+}
+```
 
