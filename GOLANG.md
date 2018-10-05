@@ -1303,12 +1303,6 @@ fmt.Println(f(values...))
 
 ### Metodi
 
-Disaccopiamento - Comportamento
-
-
-
-------
-
 Un metodo è dichiarato con una variante rispetto alla ordinaria dichiarazione di funzione nel quale compare un parametro extra racchiuso tra parentesi tonde prima del nome della funzione. 
 
 **Il parametro extra è chiamato *receiver*. Il parametro receiver collega la funzione al tipo di quel parametro.**
@@ -1514,7 +1508,7 @@ Se  i contiene un `T`, allora `t `sarà il valore sottostante e `ok` sarà `true
 
 ## Packages
 
-### La funzione init()**
+### La funzione init()
 
 Ogni file sorgente può definire la funzione `init` per impostare qualunque stato sia richiesto. (In realtà ogni file può avere più *funzioni init*). La funzione `init` viene invocata **dopo** che tutte le dichiarazioni di variabili nel package hanno valutato i loro inizializzatori e sono valutate solo dopo che tutti i packages importati sono stati inizializzati.
 
@@ -1559,6 +1553,10 @@ func init() {
 
 
 ## Gestione degli errori
+
+ 
+
+
 
 ```go
 // http://golang.org/pkg/builtin/#error
@@ -1658,9 +1656,34 @@ func webCall(b bool) error {
 
 ## Concurrency
 
-**Goroutine**: is an independent path of execution
+### Goroutines
 
-**weight group**: is a synchronous counting semaphore
+A **Goroutine** is an independent path of execution. 
+
+Una goroutine è una funzione che viene eseguita concorrentemente con altre goroutine nello stesso spazio di indirizzamento. È leggere e costa poco più dell'allocazione di spazio nello stack.
+
+Le goroutine sono spartite su più thread del sistema operativo, in modo tale che se un si blocca per operazioni di I/O, le altre continuano d eseguire. Il loro design nasconde molte delle complessità della creazione e gestione dei thread.
+
+Per eseguire una chiamata ad una funzione in un altra goroutine, si usa la parola `go` prefissa alla chiamate di funzione
+
+```go
+go list.Sort()  // run list.Sort concurrently; don't wait for it.
+```
+
+Spesso si usa una funzione letterale per da lanciare in una nuoca goroutine
+
+```go
+func Announce(message string, delay time.Duration) {
+    go func() {
+        time.Sleep(delay)
+        fmt.Println(message)
+    }()  // Note the parentheses - must call the function.
+}
+```
+
+### Wait Group
+
+Un **wait group** is a synchronous counting semaphore. **// aggiungere**
 
 ```go
 // Sample program to show how to create goroutines and
@@ -1783,7 +1806,9 @@ func main() {
 
 #### Sincronizzazione con Mutex
 
-I mutex sono utili per gestire la mutua esclusione di alcune risorse condivise o pezzi di codice. Un *mutex* può trovarsi i n 2 stati: *locked* o *unlocked*. Quando si acquisisce il lock bisogna ricordarsi SEMPRE di fare l'unlock all'interno della stessa funzione, altrimenti si ha dedlock.
+I mutex sono utili per gestire la mutua esclusione di alcune risorse condivise o pezzi di codice. Un *mutex* può trovarsi i n 2 stati: *locked* o *unlocked*. 
+
+Quando si acquisisce il lock bisogna ricordarsi **SEMPRE** di fare l'unlock all'interno della stessa funzione, altrimenti si ha dedlock.
 
 Quando si acquisisce il lock è come se si creasse una stanza nella quale un solo thread può accedere, mentre gli altri rimangono bloccati all'esterno.
 
@@ -1793,7 +1818,7 @@ Quando si acquisisce il lock è come se si creasse una stanza nella quale un sol
 
 
 
-
+All'interno di un stanza (codice contenuto tra *lock* e *unlock*) non puà esserci alcun **context switch** (ctx).
 
 ```go
 // Sample program to show how to use a mutex to define critical
@@ -1827,6 +1852,8 @@ func main() {
 
 				// Only allow one goroutine through this critical section at a time.
 				mutex.Lock()
+                // se fossi fuori dal loop userei
+                // defer mutex.Unlock()
 				{
 					// Capture the value of counter.
 					value := counter
@@ -1850,4 +1877,150 @@ func main() {
 	fmt.Printf("Final Counter: %d\n", counter)
 }
 ```
+
+#### Race Detection
+
+```bash
+go build -race
+```
+
+In questo modo il codice viene eseguito con lo strumento *race detector*.
+
+#### Map Data Race
+
+```go
+// Sample program to show how maps are not safe for concurrent use by default.
+// The runtime will detect concurrent writes and panic.
+package main
+
+import (
+	"fmt"
+	"sync"
+)
+
+// scores holds values incremented by multiple goroutines.
+var scores = make(map[string]int)
+
+func main() {
+	var wg sync.WaitGroup
+	wg.Add(2)
+
+	go func() {
+		for i := 0; i < 1000; i++ {
+			scores["A"]++
+		}
+		wg.Done()
+	}()
+
+	go func() {
+		for i := 0; i < 1000; i++ {
+			scores["B"]++
+		}
+		wg.Done()
+	}()
+
+	wg.Wait()
+	fmt.Println("Final scores:", scores)
+}
+```
+
+In questo caso siamo di fronte a race condition sulla `map` ed il runtime automaticamente la riconosce e ci segnala l'errore (con stack trace).
+
+## Channel
+
+**Language specs channel**
+
+Un `channel ` fornisce un meccanismo per eseguire concorrentemente funzioni per comunicare **inviando **(send) e **ricevendo **(receive) valori di uno specifico tipo. I channel sono tipi **reference** ed agiscono come riferimento alla struttura dati sottostante.
+
+È possibile creare un nuovo valore di `channel` utilizzando la funzione `make`, la quale prende come argomenti il *tipo del channel* e la capacità (argomento opzionale). La funzione make inizializza il channel ed è **l'unico modo per inizializzare un channel**.
+
+```go
+c := make(chan int, 100)
+```
+
+Il valore di un `channel` non inizializzato è `nil`.
+
+```go
+var c chan int // channel dichiarato ma non inizializzato
+fmt.Printf("%v", c) // stampa <nil>
+```
+
+**Tipo di un channel**: `chan`, `chan<-`, `<-chan`
+
+L'operatore `<-` specifica la direzione del `channel`, ossia **send** o **receive** 
+
+I channel possono essere dichiarati per supportare solo un flusso unidirezionale di dati, ovvero, è possible definire un channel che supporta solo l'**invio** o la **ricezione** di informazioni. Per dichiarae un channel unidirezionale basta includere l'operatore `<-`.
+
+Per dichiarare e istanziare un channel che può solo ricevere interi
+
+```go
+c := make(<-chan int) // può solo essere usato per ricevere ints
+```
+
+Per dichiarare e creare un channel che può solo inviare interi
+
+```go
+c := make(chan<- int)
+```
+
+Per dichiarare e creare un channel che può ricevere e inviare valori di tipo T
+
+```go
+c := make (chan int) // può essere usato per inviare e ricevere valori di tipo 
+```
+
+La capacità di un channel, intesa come numero di elementi, imposta la dimensione del buffer nel channel:
+
+- Se la capacità è pari a `0` o assente, il channel è **unbuffered** e la comunicazione ha successo solo quando sia il *sender* sia il *receiver* sono pronti.
+- Il channel è **buffered** e la comunicazione ha successo senza "bloccare" se il buffer non è pieno (send) o non vuoto (receives) 
+
+Un channel unbuffered è bloccante. quando invio (send) un valore su un channel (riga 78), lui blocca la goroutine fino a che in un altra goroutine non viene tirato fuori (pull out riga 7) e as ua volta la goroutine che tira fuori il valore rimane bloccarta fino a che non è possibile ricevere i l valore ne channel.
+
+```go
+func main() {
+	c := make(chan int)
+	go func() {
+		c <- 8
+	}()
+	fmt.Println(<-c)
+}
+```
+
+Il flusso nell'esempio sopra è il seguente:
+
+- creo un unbuffered channel che riceve ed invia interi
+- creo una goroutine che esegue una funzione -> va per conto suo
+-  Stampo il valore estratto dal channel ma rimango bloccato fino a che il valore non è stato inserito dalla goroutine che si occupa di inserire il valore
+- Quindi dopo aver inserito l'intero sul channel si sblocca la goroutine che ricewve il valore e posso proseguire nell'esecuzione, stampando il valore.
+
+In un channel buffered invece 
+
+```go
+func main() {
+	c := make(chan int, 1)
+	c <- 32
+	fmt.Println(<-c)
+}
+```
+
+posso estrarre valori fino ad un massimo rappresentato dalla capacità del buffer senza bloccare la goroutine. 
+
+Un channel può essere chiuso con la funzione `close` del pkg `builtin`. 
+
+Un singolo channel può essere utilizzato nelle istruzioni di invio (send), ricezione (receive) e nelle chiamate alle funzioni `len` e `cap` da un numero qualsiasi di goroutines senza ulteriore sincronizzazione.
+
+I canali agiscono come code *First-In-First-Out*. Per esempio se una goroutine invia valori in un channel e una seconda goroutine li riceve, i valori sono ricevuti nell'ordine con cui sono stati inviati.
+
+**Bill Kennedy**
+
+I `channel` sono un modo per fare *orchestration*. Abbiamo visto un esempio di orchestration con i *wait group*. 
+
+I channel ci permettono di spostare i dati attraverso le goroutines (boundaries of goroutines). 
+Quando pensiamo ad un *channel*, dobbiamo pensare a "signaling". 
+
+"Channel are for signaling" (i channel servono per segnalare). L'idea è che una goroutine sta per inviare un segnale ad un altra goroutine. Si parla infatti di inviare e ricevere e non di scrivere o leggere.
+
+
+
+
 
