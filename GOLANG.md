@@ -1528,11 +1528,63 @@ Se  i contiene un `T`, allora `t `sarà il valore sottostante e `ok` sarà `true
 
 
 
-## Packages
+## Package Design
 
-**// aggiungere**
+In Go **ogni cartella** nella tua directory sorgente rappresenta una **libreria statica**.
+Non c'è alcun concetto reale di *subpackage* in quanto un cartella annidata in una altra non significa che sia un *subpackage* di quella più esterna.
 
-### La funzione init()
+Dal punto di vista del compilatore TUTTI i package sono allo stesso livello. 
+
+### Design Philosphy
+
+- **To be purposeful (purpose == scopo), packages must provide, not contain.**
+  - Packages must be named with the intent to describe what it provides.
+  - Packages must not become a dumping ground of disparate concerns.
+- **To be usable, packages must be designed with the user as their focus.**
+  - Packages must be intuitive and simple to use.
+  - Packages must respect their impact on resources and performance.
+  - Packages must protect the user’s application from cascading changes.
+  - Packages must prevent the need for type assertions to the concrete.
+  - Packages must reduce, minimize and simplify its code base.
+- **To be portable, packages must be designed with reusability in mind.**
+  - Packages must aspire for the highest level of portability.
+  - Packages must reduce setting policy when it’s reasonable and practical.
+  - Packages must not become a single point of dependency.
+
+### Project structure
+
+Il kit è un insieme di packages che ogni azienda dovrebbe avere, e dovrebbe stare sun di un repo.
+
+```go
+Kit                     Application
+
+├── CONTRIBUTORS        ├── cmd/
+├── LICENSE             ├── internal/
+├── README.md           │   └── platform/
+├── cfg/                └── vendor/
+├── examples/
+├── log/
+├── pool/
+├── tcp/
+├── timezone/
+├── udp/
+└── web/
+```
+
+Un'applicazione rappresenta un progetto nel quale stiamo lavorando.
+
+-  **vendor/**
+  Good documentation for the `vendor/` folder can be found in this Gopher Academy [post](https://blog.gopheracademy.com/advent-2015/vendor-folder) by Daniel Theophanes. For the purpose of this post, all the source code for 3rd party packages need to be vendored (or copied) into the `vendor/`folder. This includes packages that will be used from the company `Kit` project. Consider packages from the `Kit`project as 3rd party packages.
+- **cmd/** (application logic)
+  All the programs this project owns belongs inside the `cmd/` folder. The folders under `cmd/` are always named for each program that will be built. Use the letter `d` at the end of a program folder to denote it as a daemon. Each folder has a matching source code file that contains the `main` package.
+- **internal/** (business logic)
+  Packages that need to be imported by multiple programs within the project belong inside the `internal/` folder. One benefit of using the name `internal/` is that the project gets an extra level of protection from the compiler. No package outside of this project can import packages from inside of `internal/`. These packages are therefore internal to this project only.
+- **internal/platform/** (foundational logic)
+  Packages that are foundational but specific to the project belong in the `internal/platform/` folder. These would be packages that provide support for things like databases, authentication or even marshaling.
+
+
+
+## La funzione init()
 
 Ogni file sorgente può definire la funzione `init` per impostare qualunque stato sia richiesto. (In realtà ogni file può avere più *funzioni init*). La funzione `init` viene invocata **dopo** che tutte le dichiarazioni di variabili nel package hanno valutato i loro inizializzatori e sono valutate solo dopo che tutti i packages importati sono stati inizializzati.
 
@@ -1574,13 +1626,9 @@ func init() {
 - You must distinguish between code that:
   - defends against fraud vs protects against accidents
 
-
-
-## Gestione degli errori
-
  
 
-
+## Gestione degli errori
 
 ```go
 // http://golang.org/pkg/builtin/#error
@@ -1674,6 +1722,93 @@ func webCall(b bool) error {
 	}
 
 	return ErrPageMoved
+```
+
+### Printing & Logging
+
+```go
+// stampa su standard output
+fmt.Println()	
+		
+// stampa su standard error e stampa anche data e ora di ogni messaggio stampato
+log.Println()
+
+// gameover. interrompe ed esce dal la funzione. viene chiamato "os.Exit()" dopo // aver stampato il messaggio 
+log.Fatalln() -> os.Exit()	
+	
+// è l'equivalente di una chiamata a "Println()" seguita da "panic()"
+log.Panicln() 
+
+// vedi sotto
+panic()	
+```
+
+### Panic
+
+È una funzione del pkg `builtin` che interrompe la normale esecuzione della goroutine corrente. Quando una funzione `f` invoca `panic()`, la normale esecuzione di `f`viene interrotta immediatamente. Qualsiasi funzione la cui esecuzione è ritardata con `defer(any func) `viene eseguita e poi `f` ritorna al chiamante.
+
+Al chiamante `g`, l'invocazione di `f` si comporta a sua volta come un invocazione a `panic()` , terminando l'invocazione di `g` ed eseguendo qualsiasi funzione ritardata con `defer` . 
+
+Questo meccanismo continua fino a quando tutte le funzioni nella goroutine che sta eseguendo si sono interrotte. A quel punto il programma termina e viene riportata la condizione di errore, incluso il valore dell'argomento della funzione `panic`. Questa sequenza di terminazione viene chiamata **panicking** e può essere controllata dalla funzione `recover` del pkg `builtin`.
+
+```go
+func main() {
+    _, err := os.Open("file.txt")
+    if err != nil {
+        panic(err)
+    }
+}
+```
+
+### Recover
+
+È una funzione del pkg `builtin`  che consente al programma di gestire il comportamento di un *panicking* in una goroutine. 
+
+Eseguendo una chiamata  della funzione recover`recover()` all'interno di una funzione ritardata `defer(func() {... recover()...})`questa ferma la sequenza di panicking ripristinando la normale esecuzione e recupera il valore di errore passato alla funzione di `panic`. 
+
+Se la funzione `recover`  chiamata al di fuori della funzione ritardata la sequenza di panicking non verrà fermata. In questo caso, se la goroutine non in stato di *panicking* oppure se l'argomento fornito alla funzione `panic` è `nil`, la funzione `recover` ritorna il valore `nil`. Quindi il valore di ritorno dalla funzione `recover` indica se la goroutine è in uno stato di panicking.
+
+```go
+func main() {
+    f()
+    fmt.Println("Returned normally from f.")
+}
+
+func f() {
+    defer func() {
+        if r := recover(); r != nil {
+            fmt.Println("Recovered in f", r)
+        }
+    }()
+    fmt.Println("Calling g.")
+    g(0)
+    fmt.Println("Returned normally from g.")
+}
+
+func g(i int) {
+    if i > 3 {
+        fmt.Println("Panicking!")
+        panic(fmt.Sprintf("%v", i))
+    }
+    defer fmt.Println("Defer in g", i)
+    fmt.Println("Printing in g", i)
+    g(i + 1)
+}
+
+/* stampa:
+Calling g.
+Printing in g 0
+Printing in g 1
+Printing in g 2
+Printing in g 3
+Panicking!
+Defer in g 3
+Defer in g 2
+Defer in g 1
+Defer in g 0
+Recovered in f 4
+Returned normally from f.
+*/
 ```
 
 
@@ -2006,7 +2141,7 @@ v, wd := <-ch	// valore del channel + booleano
 
 **Tipo di un channel**: `chan`, `chan<-`, `<-chan`
 
-L'operatore `<-` specifica la direzione del `channel`, ossia **send** o **receive** 
+ L'operatore `<-` specifica la direzione del `channel`, ossia **send** o **receive** 
 
 I channel possono essere dichiarati per supportare solo un flusso unidirezionale di dati, ovvero, è possible definire un channel che supporta solo l'**invio** o la **ricezione** di informazioni. Per dichiarare un channel unidirezionale basta includere l'operatore `<-`.
 
