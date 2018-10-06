@@ -1,6 +1,6 @@
 # GOLANG 
 
-### Tipi in Go
+## Tipi in Go
 
 In Go ci sono 3 classi di tipi con cui possiamo avere a che fare:
 
@@ -17,13 +17,13 @@ Referece type -> value semantic sempre, eccetto per "decoding" e "unmarshalling"
 
 User defined type -> bisogna fare una scelta: se non si è sicuri su cosa scegliere, meglio usare pointer semantic. 
 
-#### Linee guida nella dichiarazione di tipi
+### Linee guida nella dichiarazione di tipi
 
 - dichiara tipi che rappresentano qualcosa di nuovo o unico
 - convalidare che un valore di qualsiasi tipo venga creato o utilizzato da solo
 - Integra tipi per riusare comportamenti che hai bisogno di soddisfare, non per stato
 
-### Decoupling
+## Decoupling
 
 Livelli di design di una API (si dovrebbe fare in questo modo)
 
@@ -31,7 +31,7 @@ Livelli di design di una API (si dovrebbe fare in questo modo)
 
 
 
-### Valori zero
+## Valori zero
 
 Variabili dichiarate senza un inizializzatore esplicito sono automaticamente inizializzate con il proprio "valore zero", il quale è :
 
@@ -47,7 +47,7 @@ Il valore zero di un tipo aggregato come  *array e struct* ha il valore zero di 
 
 > **NB**: Il meccanismo "zero values" garantisce che una variabile contenga sempre un valore ben definito del suo tipo.
 
-### Best practices
+## Best practices
 
 - Non usare mai la **pointer semantic** per la costruzione (riga 16 ). Usare **value semantic** (riga 7)
 
@@ -79,12 +79,12 @@ func f2() *user {
 
 
 
-### Visibilità (Exported - Unexported)
+## Visibilità (Exported - Unexported)
 
 In Go un nome viene esportato (exported, pubblico), ossia è visibile al di fuori del package se comincia con la lettera maiuscola.
 Quando si importa un package, ci si può solo riferire a i nomi "exported" (pubblici). Qualsiasi nome "unexported" (privato) non è accessibile al di fuori del package.
 
-### Variabili
+## Variabili
 
 La dichiarazione `var` :
 
@@ -123,7 +123,7 @@ Anche in questo caso la dichiarazione di una variabile può includere l'iniziali
 var i, j int = 1, 2
 ```
 
-#### Short variables declaration
+### Short variables declaration
 
 **Solo all'interno di una funzione** è possibile utilizzare (molto consigliato) l'operatore `:=` (short variable declaration) al posto della dichiarazione con `var` (vedi sopra). 
 
@@ -142,7 +142,7 @@ func main() {
 }
 ```
 
-#### Tempo di vita di una variabile
+### Tempo di vita di una variabile
 
 Il tempo di vita di una variablie è l'intervallo di tempo durante il quale esiste mentre il programma è in esecuzione. 
 
@@ -152,7 +152,7 @@ Una variabile locale invece ha un tempo di vita dinamico: una nuova istanza è c
 
 Uno degli effeti di questa caratteristica in Go sono le *closures*
 
-### Dichiarazione di Tipo
+## Dichiarazione di Tipo
 
 Il tipo di una variabile (o espressione) definisce le caratteristiche dei valori che può assumere, come size, operazioni ecc.
 
@@ -166,7 +166,7 @@ type name underlyingType
 
 Questa dichiarazione molto spesso avviene a livello di package.
 
-### Type Inference
+## Type Inference
 
 Quando si dichiara una variablie senza specificarne esplicitamente il tipo (sia usando la sintassi `:=` che `var` ), il tipo della variabile è dedotto (inferred) dal valore dell'espressione. 
 
@@ -187,7 +187,7 @@ f := 3.142  	  	// float64
 g := 0.867 + 0.5i	// complex128
 ```
 
-### Tipi base
+## Tipi base
 
 I tipi di base del linguaggio GO sono
 
@@ -213,7 +213,7 @@ I tipi `int` ,`uint`, e `uintptr` occupano di solito 32 bits su sitemi a 32-bit 
 
 Quando si vuole usare un valore intero, è consigliato usare `int` a meno che ci sia una ragione specifica per usare un tipo intero con size specifica o senza segno.
 
-### Conversione di tipo
+## Conversione di tipo
 
 L'espressione `T(v)` converte il valore `v` al tipo `T`
 
@@ -238,9 +238,9 @@ Le conversione sono permesse anche tra:
 - stringhe
 - alcuni tipi di slices
 
-### Stringhe
+## Stringhe
 
-#### da sistemare ///
+**da sistemare ///**
 
 ```go
 // literal string, 18 bytes -> array di len == 18
@@ -335,7 +335,7 @@ fmt.Println(str[1])	// stampa 97
 fmt.Println(str[1] < str[0])	// stampa true
 ```
 
-#### Stringhe letterali
+### Stringhe letterali
 
 Una valore di tipo stringa può essere scritto come una *stringa letterale*, una sequenza di bytes racchiusi da doppi apici `"Hello"`.
 
@@ -402,7 +402,7 @@ const (
 )
 ```
 
-#### Il generatore di costanti iota
+### Il generatore di costanti iota
 
 Una dichiarazione di costante può fare uso del *generatore di costante* `iota`, il quale viene usato per creare una sequenza di valori correlati senza specificare esplicitamente ciascuno di essi. In una dichiarazione di costante il valore di `iota` inizia da `0` e viene incrementato di uno per ogni elemento in sequenza.
 
@@ -420,7 +420,7 @@ const (
 )
 ```
 
-#### Costanti senza tipo
+### Costanti senza tipo
 
 Anche se una costante può assumere qualsiasi tipo di base  (numeric , bool, string), molte costanti sono associate ad un tipo particolare. Il compilatore rappresenta questa costanti con una precisione numerica maggiore rispetto ai valori dei tipi di base. Si può. assumere una precisione di 256 bit. 
 
@@ -435,7 +435,7 @@ Ci sono sei tipologie di "uncommitted constants":
 
 Rimandando l'assunzione di un tipo, le costanti non tipizzate non solo mantengono la maggiore precisione piu a lungo, ma possono partecipare a molte più espressioni rispetto alle costanti con tipo s**enza richiedere conversioni**.
 
-### For statements
+## For statements
 
 Go ha solo un costrutto per i cicli, il ciclo `for`.
 Il ciclo `for` di base ha **tre** componenti separati da `;`
@@ -465,7 +465,7 @@ Se si omette anche la "condition expression" allora il ciclo va all'infinito.
 for {...}
 ```
 
-### Range
+## Range
 
 Un `for` statement con una clausola `range` itera attraverso tutt le entries di:
 
@@ -488,7 +488,7 @@ for i, v := range sli {
 // range su array
 // range su *array
 // range su string
-// range su channel
+// range su string
 ```
 
 Per ogni entry  la clausala `range` assegna i **valori di iterazione** alle **variabile di iterazione** corrispondenti se presenti e quindi esegue il blocco. 
@@ -530,7 +530,7 @@ for i := range arr { // viene fatta una copia di range.
 
 
 
-### Blank Identifier
+## Blank Identifier
 
 il *blank identifier* `_` può essere assegnato o dichiarato con qualsiasi valore di qualsiasi tipo, e il valore viene scartato in modo innocuo (in go ogni variabile cdeve essere usato altrimenti viene segnato un errore di compilazione). Si tratta di un valore di sola scrittura da utilizzare come segnaposto dove è necessaria una variabile ma il valore non ci interessa.
 
@@ -541,7 +541,9 @@ for _, v := range sli {	// nessun errore di compilazione
 }
 ```
 
-### If statemets
+
+
+## If statemets
 
 In Go, come per il ciclo `for`, nello statement `if` l'espressione non ha bisogno di essere racchiusa da parentesi rotonde, ma per il corpo sono richieste le parentesi graffe.
 
@@ -573,12 +575,14 @@ func pow(x, n, lim float64) float64 {
 }
 ```
 
-### Switch statements
+
+
+## Switch statements
 
 Uno `switch` statement è il modo piu rapido per scrivere una sequenza di `if - else` statements. 
 Ci sono 2 forme di switch: **expression switches** e **type switches**.
 
-#### Expression switches
+### Expression switches
 
 In un expression switch i cases contengono espressioni che sono comparate con il valore dell'espressione dello switch. **Viene eseguito il primo caso il cui valore sia uguale alla condizione**. 
 
@@ -655,7 +659,7 @@ switch v {
 }
 ```
 
-#### Type switches
+### Type switches
 
 Un *type switch* è un costrutto che permette diversi **assertion types** in serie. Si tratta di un regolare *switch statement* ma i casi in un *type switch* specificano tipi (non valori), e questi sono confrontati con il tipo del valore contenuto nell'interfaccia specificata.
 
@@ -689,7 +693,7 @@ func main() {
 
 
 
-### Defer
+## Defer
 
 Una dichiarazione di `defer` rimanda l'esecuzione di una funzione fino a quando la funzione che la contiene non ritorna. L'argomento di una dichiarazione `defer` viene valutata immediatamente, ma la funzione viene chiamata solo al ritorno della funzione contenitrice.
 
@@ -723,7 +727,9 @@ func main() {
 //	   1
 ```
 
-### Pointers types
+
+
+## Pointers types
 
 Un puntatore contiene l'indirizzo in memoria di una variabile. Il tipo `*T` è un puntatore ad un valore di tipo `T`. Il valore zero di un puntatore è `nil`.
 
@@ -745,7 +751,9 @@ fmt.Println(*p)	// leggo i attraverso il puntatore p
 *p = 23		// metto i attraverso il puntatore p
 ```
 
-### Arrays types
+
+
+## Arrays types
 
 Un array è una **sequenza fissa** di zero o più elementi di **un particolare tipo**.  A causa della dimensione fissa, in Go gli array sono raramente utilizzati a favore degli **slices**.
 
@@ -793,6 +801,8 @@ arr2 := [4]int{1, 2, 3, 4}
 fmt.Println(arr1 == arr2)	// stampa: true
 ```
 
+
+
 ### Slices types
 
 Uno slice rappresenta una **sequenza variabile** i cui elementi hanno tutti lo stesso tipo (array dinamici). È un tipo reference.
@@ -819,7 +829,7 @@ s := []int{1, 2, 3, 4, 5, 6, 7}	// dichiarazione slice iniziallizzato con slice 
 
 Più slice possono condividere lo stesso array sottostante e possono riferirsi a parti sovrapposte di quel array (figura sopra e codice sotto).
 
-#### **slice di slice**
+## **Slice di slice**
 
 Uno slice di slice è formato specificando 2 indici, un limite inferiore ed uno superiore, separati dal''operatore di slice `:` .
 
@@ -901,7 +911,9 @@ Il risultato della funzione `append` è uno slice contente tutti gli elementi de
 
 Se l'array sottostante ad s (primo parametro) è troppo piccolo (capacità) per contenere tutti i nuovi valori allora viene allocato un nuovo array. Lo slice ritornato punterà a questo nuovo array.
 
-### Maps types
+
+
+## Maps types
 
 Una hash table è una collezione non ordinata di coppie chiave/valore nella quale tutte le chiave sono distinte e i valori associati ad esse possono essere recuperati, aggiornati o rimossi.
 
@@ -966,6 +978,8 @@ Fare lo subscripting di una `map ` produce quindi 2 valori:
 
 Come per le `slice`, una `map` non può essere confrontata con un'altra `map` . L'unico confronto possibile è con il valore `nil` .  Il "valore zero" di uno tipo `map` è `nil` .
 
+
+
 ### Structs types
 
 Per ottimizzre l'uso della memoria, e non "sprecare" byte di padding, si deveono inserire i fileds di una strcut dal piu grande al piu piccolo (dall'altro verso il basso).
@@ -1015,7 +1029,7 @@ s := struct{}{}  // dichiarazione struct {}, inizializzazione con la seconda {}
 
 > **NB**: il nome di un field di una `struc` è "exported" se comincia con la lettera maiuscola.
 
-#### Struct Literals
+### Struct Literals
 
 Una `struct` letterale rappresenta una nuova struttura allocata, nella quale vengono elencati i valori dei suoi campi. Ci sono 2 forme per una struttura letterale	
 
@@ -1149,7 +1163,9 @@ p2 := Person{
 
 In questo caso la `struct Address` assume lo stesso nome del tipo.
 
-### Le funzioni new e make
+
+
+## Le funzioni new e make
 
 Go ha due primitive di allocazione, le funzioni `make` e `new` del pk `builtin`.
 La funzione `new(Type) *Type` e la "mette" al valore zero del tipo `Type`.  Nella terminologia di Go, si dice che la funzione`new(T)` ritorna un puntatore al "valore zero" appena allocato di tipo `T` .
@@ -1157,6 +1173,8 @@ La funzione `new(Type) *Type` e la "mette" al valore zero del tipo `Type`.  Nell
 La funzione  `new` si puà utilizzare per tutti i tipi tranne che per i tipi reference come `map`, `slice` e  `channel` per i quali si usa la funzione `make`.
 
 La funzione `make(T, args` crea  `map`, `slice` e  `channel` e ritorna un valore inizializzato (non un valore zero) di tipo `T`.  La ragione della distinzione rispetto alla `new` è dovuta al fatto che questi tipi in realtà rappresentano dei riferimenti a strutture dati che devono essere inizializzate prima dell'uso.
+
+
 
 ### Functions types
 
@@ -1199,7 +1217,7 @@ I nomi dati alle variabili di ritorno dovrebbero essere significativi per docume
 
 Lo statement `return` senza gli argomenti viene detto **naked** e ritorna i/il valori/e di ritorno a cui è stato dato un nome.
 
-#### Valori Funzione
+### Valori Funzione
 
 Le funzioni in Go sono *first-class value*: come altri valori **le funzioni hanno dei tipi** e possono essere **assegnate** ad una variabile o **passate** ad una funzione o **ritornate** da una funzione. 
 
@@ -1232,7 +1250,7 @@ fmt.Println(f())	// stampa: 16
 
 I valori funzione possono essere confrontati solo con il valore `nil`.
 
-#### Funzioni anonime
+### Funzioni anonime
 
 Le funzioni con nome possono essere dichiarate solo a livello di package, ma è possibile usare una *funzione letterale* per denotare un valore funzione con una espressione. Una funzione letterale è scritta come una dichiarazione di funzione ma senza un nome che segue la keyword `func`. Si tratta di un'espressione e il suo valore è chiamato *funzione anonima*.
 
@@ -1249,7 +1267,7 @@ func() int {
 }() 
 ```
 
-#### Funzioni Closures
+### Funzioni Closures
 
 Le funzioni in Go possono essere *closures*. Una closure è un valore funzione che fa riferimento a variabili esterne al suo corpo. Questa funzione può accedere e assegnare valori alla variabili a cui fa riferiemento.
 
@@ -1272,7 +1290,7 @@ func main() {
 // stampa: 0 1 3 6 10 15 21 28 36 45 
 ```
 
-#### Funzioni Variadic 
+### Funzioni Variadic 
 
 Una *funzione variadic* può essere chiamata con un numero variabile di argomenti. Per dichiarare una *funzione variadic* il tipo del parametro finale della funzione deve essere preceduto dal''operatore `...` , il quale indica che la funzione può essere  chiamata con un qualsiasi numero di argomenti di quel tipo
 
@@ -1301,7 +1319,9 @@ values := []int{1, 2, 3, 4}
 fmt.Println(f(values...))
 ```
 
-### Metodi
+
+
+## Metodi
 
 Un metodo è dichiarato con una variante rispetto alla ordinaria dichiarazione di funzione nel quale compare un parametro extra racchiuso tra parentesi tonde prima del nome della funzione. 
 
@@ -1362,7 +1382,7 @@ p2.setAge(33)		// ok
 - è possibile fare side effetcs
 - si evita la copia del valore ad ogni chiamata al metodo
 
-#### Method sets
+### Method sets
 
 Un insieme di metodi determina quali metodi sono associati ad un tipo. 
 
@@ -1422,7 +1442,9 @@ func spk(s speaker) {
 }
 ```
 
-### Interfacce
+
+
+## Interfacce
 
 Un'interfaccia è un **tipo** astratto ed è definito come un insieme di signature di metodi. 
 
@@ -1463,7 +1485,7 @@ func main() {
 }
 ```
 
-#### Valori interfaccia
+### Valori interfaccia
 
 Concettualmente un valore di un tipo interfaccia è composto da due componenti (una tupla): un tipo concreto e un valore di quel tipo.
 
@@ -1481,7 +1503,7 @@ Si noti che un valore interfaccia che contiene un valore concreto `nil` è essa 
 
 Un valore nullo di tipo interfaccia non ha nè valore nè tipo. Chiamare un metodo su di un'interfaccia `nil` produce un errore a run time in quanto non è presente alcun tipo all'interno della tupla dell'interfaccia per indicare quale metodo concreto chiamare
 
-#### Type Assertions
+### Type Assertions
 
 Un' asserzione di tipo fornisce l'accesso al valore concreto sottostante il valore dell'interfaccia. È una sort di type checking.
 
@@ -1507,6 +1529,8 @@ Se  i contiene un `T`, allora `t `sarà il valore sottostante e `ok` sarà `true
 
 
 ## Packages
+
+**// aggiungere**
 
 ### La funzione init()
 
@@ -1928,15 +1952,16 @@ In questo caso siamo di fronte a race condition sulla `map` ed il runtime automa
 
 ## Channel
 
-**Language specs channel**
+I `channel` sono un modo per fare *orchestration*. Abbiamo visto un esempio di orchestration con i *wait group*. 
+
+I channel ci permettono di spostare i dati attraverso le goroutines (boundaries of goroutines). 
+Quando pensiamo ad un *channel*, dobbiamo pensare a "signaling". 
+
+"Channel are for signaling" (i channel servono per segnalare). L'idea è che una goroutine sta per inviare un segnale ad un altra goroutine. Si parla infatti di inviare e ricevere e non di scrivere o leggere.
 
 Un `channel ` fornisce un meccanismo per eseguire concorrentemente funzioni per comunicare **inviando **(send) e **ricevendo **(receive) valori di uno specifico tipo. I channel sono tipi **reference** ed agiscono come riferimento alla struttura dati sottostante.
 
 È possibile creare un nuovo valore di `channel` utilizzando la funzione `make`, la quale prende come argomenti il *tipo del channel* e la capacità (argomento opzionale). La funzione make inizializza il channel ed è **l'unico modo per inizializzare un channel**.
-
-Un channel è automaticamente **aperto** quando viene inizializzato con la funzione `make`
-
-Un channel può essere **chiuso** con la funzione `close` del pkg `builtin`. 
 
 ```go
 c := make(chan int, 100)
@@ -1949,6 +1974,35 @@ Il valore di un `channel` non inizializzato è `nil`.
 var c chan int // channel dichiarato ma non inizializzato
 fmt.Printf("%v", c) // stampa <nil>
 ```
+
+Un channel è automaticamente **aperto** quando viene inizializzato con la funzione `make`
+
+Un channel può essere **chiuso** con la funzione `close` del pkg `builtin`. 
+Per un channel `c`, la funzione `close(c)` registra che non verranno più inviati valori nel channel. È un errore usare `close` se `c` è un canale di sola ricezione (cioè con tipo `<-chan T`). Inviare o chiudere un channel chisuo genera un `panic`. Anche chiudere un channel con valore `nil` genere un `panic`. 
+
+Dopo aver chiamato la funzione `close`, e dopo aver ricevuto tutti i valori inviati in precedenza, le operazioni di ricezione restituiranno il valore zero per il tipo di canale senza bloccare.
+
+```go
+c := make(chan int)
+
+// send
+go func() {
+	c<- 5
+	close(c)
+}()
+
+// receive
+fmt.Println(<-c) // stampa 5
+fmt.Println(<-c) // stampa 0
+```
+
+L'operazione di ricezione multivalore restituisce un valore ricevuto insieme all'indicazione se il canale è chiuso. (vedi ricezione multi valore sotto)
+
+```go
+v, wd := <-ch	// valore del channel + booleano
+```
+
+> Questo sopra è il solito **comma ok idiom** cioè valore + bollano restituito
 
 **Tipo di un channel**: `chan`, `chan<-`, `<-chan`
 
@@ -2023,18 +2077,97 @@ Un singolo channel può essere utilizzato nelle istruzioni di invio (send), rice
 
 I canali agiscono come code *First-In-First-Out*. Per esempio se una goroutine invia valori in un channel e una seconda goroutine li riceve, i valori sono ricevuti nell'ordine con cui sono stati inviati.
 
-------
+### Range su Channel
 
-I `channel` sono un modo per fare *orchestration*. Abbiamo visto un esempio di orchestration con i *wait group*. 
+```go
+c := make(chan int)
 
-I channel ci permettono di spostare i dati attraverso le goroutines (boundaries of goroutines). 
-Quando pensiamo ad un *channel*, dobbiamo pensare a "signaling". 
+// send
+go func() {
+	for i := 0; i < 5; i++ {
+		c <- i
+	}
+	close(c)
+}()
 
-"Channel are for signaling" (i channel servono per segnalare). L'idea è che una goroutine sta per inviare un segnale ad un altra goroutine. Si parla infatti di inviare e ricevere e non di scrivere o leggere.
+// receive
+for v := range c {
+	fmt.Println(v)
+}
 
-#### Concurrency pattern
+fmt.Println("about to exit")
+```
 
-**wait for task**
+Per i `channels` i valori di iterazioni prodotti da `range` (`v` nell'esempio sopra) sono i valori successivi inviati sul channel fino a quando il channel non viene chiuso. Quindi il `for range` sul channel continua fino a che il channel non viene chiuso. Se il channel non viene chiuso, si avrà deadlock
+
+### Select statements
+
+Lo statement `select` consente di rimanere in attesa di operazioni su più canali. 
+
+Lo statement `select` sceglie tra un insieme di operazioni quale operazione di *invio* o *ricezione* verrà processata. È simile aduno `switch` statement ma con i casi che si riferiscono ad operazioni di cominuicazione (*signaling*, cioè *send* o *recevie*).
+
+Nell'esempio sotto viene fatta una select tra due channel.
+
+- Ogni channel riceve un valore dopo un po' di tempo, simulando operazioni di I/O per esempio che possono svolgersi in una goroutine (righe 6-13)
+- Viene usata la select per aspettare entrambi i valori dei due channel simultaneamente, stampando ogni valore quando viene ricevuto (righe 15-20)
+
+```go
+func main() {
+
+    c1 := make(chan string)
+    c2 := make(chan string)
+
+    go func() {
+        time.Sleep(1 * time.Second)
+        c1 <- "one"
+    }()
+    go func() {
+        time.Sleep(2 * time.Second)
+        c2 <- "two"
+    }()
+
+        select {
+        case msg1 := <-c1:
+            fmt.Println("received", msg1)
+        case msg2 := <-c2:
+            fmt.Println("received", msg2)
+        }
+    }
+}
+
+// stampa: received one dopo 1 sec e received 2 dopo 2 sec. Poi termina.
+```
+
+Di base operazioni di invio e ricezione su un channel sono bloccanti. Tuttavia è possibile usare lo statement `select` con la clausola `default` per implementare invii e ricezioni non bloccanti.
+
+- **Righe 5-10**: C'è un *receiver* non bloccante, in quanto se un valore è disponibile sul channel `messages` allora la `select`scegliera il case `msg := <-messages` in riga 6 con quel valore. Se non c'è alcun valore disponibile `select` scegliera il case di `default`
+- **Righe 12-18**: Un *sender* non bloccante si comporta in modo simile. In questo caso `msg` non può essere inviato al channel `messages` in quanto non c'è alcun buffer e nessun receiverPerciò viene scelta il case `default`
+
+```go
+func main() {
+    messages := make(chan string)
+    signals := make(chan bool)
+
+    select {
+    case msg := <-messages:
+        fmt.Println("received message", msg)
+    default:
+        fmt.Println("no message received")
+    }
+
+    msg := "hi"
+    select {
+    case messages <- msg:
+        fmt.Println("sent message", msg)
+    default:
+        fmt.Println("no message sent")
+    }
+}
+```
+
+### Concurrency pattern
+
+#### wait for task
 
 ```go
 // waitForTask: Think about being a manager and hiring a new employee. In
@@ -2054,11 +2187,12 @@ func waitForTask() {
 	fmt.Println("manager : sent signal")
 
 	time.Sleep(time.Second)
-	fmt.Println("-------------------------------------------------------------")
 }
 ```
 
-**wait for result** - come esempio sopra sui channel
+#### wait for result 
+
+È come l'esempio sopra sui channel unbuffered
 
 ```go
 // waitForResult: Think about being a manager and hiring a new employee. In
@@ -2078,11 +2212,10 @@ func waitForResult() {
 	fmt.Println("manager : recv'd signal :", p)
 
 	time.Sleep(time.Second)
-	fmt.Println("-------------------------------------------------------------")
 }
 ```
 
-**wait for finish**
+#### wait for finish
 
 ```go
 // waitForFinished: Think about being a manager and hiring a new employee. In
@@ -2103,7 +2236,6 @@ func waitForFinished() {
 	fmt.Println("manager : recv'd signal :", wd)
 
 	time.Sleep(time.Second)
-	fmt.Println("-------------------------------------------------------------")
 }
 ```
 
