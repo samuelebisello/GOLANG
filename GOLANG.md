@@ -980,7 +980,7 @@ Come per le `slice`, una `map` non può essere confrontata con un'altra `map` . 
 
 
 
-### Structs types
+## Structs types
 
 Per ottimizzre l'uso della memoria, e non "sprecare" byte di padding, si deveono inserire i fileds di una strcut dal piu grande al piu piccolo (dall'altro verso il basso).
 
@@ -1574,7 +1574,7 @@ Kit                     Application
 Un'applicazione rappresenta un progetto nel quale stiamo lavorando.
 
 -  **vendor/**
-  Good documentation for the `vendor/` folder can be found in this Gopher Academy [post](https://blog.gopheracademy.com/advent-2015/vendor-folder) by Daniel Theophanes. For the purpose of this post, all the source code for 3rd party packages need to be vendored (or copied) into the `vendor/`folder. This includes packages that will be used from the company `Kit` project. Consider packages from the `Kit`project as 3rd party packages.
+    Good documentation for the `vendor/` folder can be found in this Gopher Academy [post](https://blog.gopheracademy.com/advent-2015/vendor-folder) by Daniel Theophanes. For the purpose of this post, all the source code for 3rd party packages need to be vendored (or copied) into the `vendor/`folder. This includes packages that will be used from the company `Kit` project. Consider packages from the `Kit`project as 3rd party packages.
 - **cmd/** (application logic)
   All the programs this project owns belongs inside the `cmd/` folder. The folders under `cmd/` are always named for each program that will be built. Use the letter `d` at the end of a program folder to denote it as a daemon. Each folder has a matching source code file that contains the `main` package.
 - **internal/** (business logic)
