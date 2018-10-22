@@ -981,7 +981,7 @@ Come per le `slice`, una `map` non può essere confrontata con un'altra `map` . 
 
 
 
-### Structs types
+## Structs types
 
 Per ottimizzre l'uso della memoria, e non "sprecare" byte di padding, si deveono inserire i fileds di una strcut dal piu grande al piu piccolo (dall'altro verso il basso).
 
