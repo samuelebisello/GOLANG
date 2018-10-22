@@ -6,16 +6,15 @@ In Go ci sono 3 classi di tipi con cui possiamo avere a che fare:
 
 - i tipi di base (**built-in type**): *strings, numerics* e *boolean*
 
-- i tipi riferimento (**reference type**): *slices, maps, channles, interface values* e funzioni
+- i tipi riferimento (**reference type**): *slices, maps, channels, interface values, functions*. 
 
 - i tipi definiti dall'utente (**user defined type**): *struct*
 
+**Builtin type** -> value semantic sempre (x qualsiasi cosa, anche filed in struct)
 
-Builtin type -> value semantic sempre (x qualsiasi cosa, anche filed in struct)
+**Referece type** -> value semantic sempre, eccetto per "decoding" e "unmarshalling"
 
-Referece type -> value semantic sempre, eccetto per "decoding" e "unmarshalling"
-
-User defined type -> bisogna fare una scelta: se non si è sicuri su cosa scegliere, meglio usare pointer semantic. 
+**User defined type** -> bisogna fare una scelta: se non si è sicuri su cosa scegliere, meglio usare pointer semantic. 
 
 ### Linee guida nella dichiarazione di tipi
 
@@ -144,7 +143,7 @@ func main() {
 
 ### Tempo di vita di una variabile
 
-Il tempo di vita di una variablie è l'intervallo di tempo durante il quale esiste mentre il programma è in esecuzione. 
+Il tempo di vita di una variablie è l'intervallo di tempo durante il quale  (la variabile) esiste mentre il programma è in esecuzione. 
 
 Il tempo di vita di una variabile a livello di package è **l'intera esecuzione del programma**. 
 
@@ -272,7 +271,7 @@ Una codifica di caratteri (character encoding) fornisce una chiave per interpret
 
 Quando viene inserito del testo usando una tastiera (o altro), la codifica di caratteri mappa i caratteri inseriti in specifici byte nella memoria del computer e quindi per visualizzare il testo converte nuovamente i byte in caratteri.
 
-Una stringa è una sequenzaimmutabile di bytes (uint8). Le stringhe possono contenere dati arbitrari, inclusi bytes con valore 0, ma solitamente contengono testo leggibile. 
+Una stringa è una sequenza immutabile di bytes (uint8). Le stringhe possono contenere dati arbitrari, inclusi bytes con valore 0, ma solitamente contengono testo leggibile. 
 
 Una stringa contiene una array di bytes che una volta creato, è immutabile. Al contrario, gli elementi di una slice di byte possono essere modificati liberamente. 
 
@@ -282,7 +281,9 @@ Una *stringa* può essere convertita in uno *slice di byte* e viceversa.
 
 **Le stringhe sono interpretate come sequenze codificate in UTF-8 di Unicode code points (runes).**
 
-Una stringa è composta da due *word*. Una word ha dimensione relativa all'architettura del pc su cui stiamo scirvendo ed eseguendo il nostro programma. Se abbiamo un architettura a 64-bit, avremo parole di 8 bytes, se 32-bit di 4 bytes.
+Una stringa è composta da due *word*s. 
+
+> Una word ha dimensione relativa all'architettura del pc su cui stiamo scirvendo ed eseguendo il nostro programma. Se abbiamo un architettura a 64-bit, avremo parole di 8 bytes, se 32-bit di 4 bytes.
 
 
 
@@ -370,7 +371,7 @@ Mondo
 
 Le stringe letterali raw anche usate per scrivere espressioni regolari, in quanto tendono ad avere un gran numero di backslashes.
 
-### Costanti
+## Costanti
 
 Le costanti sono dichiarate come le variabili, ma con la keyword `const` e definiscono un valore costante il quale previene accidentali modifiche durante l'esecuzione del programma. 
 
@@ -387,7 +388,7 @@ Come per le variabili, una sequenza di costanti può apparire in una dichiarazio
 ```go
 const (
 	pi = 3.14159
-    e  = 3.14159
+    e  = 2.71828
 )
 ```
 
@@ -1574,7 +1575,7 @@ Kit                     Application
 Un'applicazione rappresenta un progetto nel quale stiamo lavorando.
 
 -  **vendor/**
-  Good documentation for the `vendor/` folder can be found in this Gopher Academy [post](https://blog.gopheracademy.com/advent-2015/vendor-folder) by Daniel Theophanes. For the purpose of this post, all the source code for 3rd party packages need to be vendored (or copied) into the `vendor/`folder. This includes packages that will be used from the company `Kit` project. Consider packages from the `Kit`project as 3rd party packages.
+    Good documentation for the `vendor/` folder can be found in this Gopher Academy [post](https://blog.gopheracademy.com/advent-2015/vendor-folder) by Daniel Theophanes. For the purpose of this post, all the source code for 3rd party packages need to be vendored (or copied) into the `vendor/`folder. This includes packages that will be used from the company `Kit` project. Consider packages from the `Kit`project as 3rd party packages.
 - **cmd/** (application logic)
   All the programs this project owns belongs inside the `cmd/` folder. The folders under `cmd/` are always named for each program that will be built. Use the letter `d` at the end of a program folder to denote it as a daemon. Each folder has a matching source code file that contains the `main` package.
 - **internal/** (business logic)
